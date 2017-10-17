@@ -63,6 +63,12 @@ void generate_reports(int cday, int cmon, int cyear, const struct tm *p)
                          ALERTS, cyear, monthss[cmon], "alerts", cday);
                 os_strdup(aname, mond.reports[s]->r_filter.filename);
 
+                time_t tm;
+                tm = time(NULL);
+                const struct tm *p2;
+                p2 = localtime(&tm);
+
+
                 /* Start report */
                 os_ReportdStart(&mond.reports[s]->r_filter);
                 fflush(mond.reports[s]->r_filter.fp);
@@ -75,7 +81,7 @@ void generate_reports(int cday, int cmon, int cyear, const struct tm *p)
                                               mond.emailfrom,
                                               mond.emailidsname,
                                               mond.reports[s]->r_filter.fp,
-                                              p)
+                                              p2)
                            != 0) {
                     merror("%s: WARN: Unable to send report email.", ARGV0);
                 }
