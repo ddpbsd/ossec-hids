@@ -142,6 +142,10 @@ int OS_CleanMSG(char *msg, Eventinfo *lf)
         )
 
     ) {
+
+        lf->dec_timestamp = lf->full_log + loglen;
+        lf->log[-1] = '\0';
+
         /* Check for an extra space in here */
         if (*lf->log == ' ') {
             lf->log++;
@@ -338,7 +342,9 @@ int OS_CleanMSG(char *msg, Eventinfo *lf)
              (pieces[24] == ' ') &&
              (pieces[26] == ' ')) {
         /* Move log to the beginning of the message */
-        lf->log += 24;
+        lf->log += 25;
+        lf->dec_timestamp = lf->full_log + loglen;
+        lf->log[-1] = '\0';
     }
 
     /* Check for snort date format
@@ -352,6 +358,8 @@ int OS_CleanMSG(char *msg, Eventinfo *lf)
               (pieces[14] == '.') &&
               (pieces[21] == ' ') ) {
         lf->log += 23;
+        lf->dec_timestamp = lf->full_log + loglen;
+        lf->log[-2] = '\0';
     }
 
     /* Check for suricata (new) date format
@@ -366,6 +374,8 @@ int OS_CleanMSG(char *msg, Eventinfo *lf)
               (pieces[19] == '.') &&
               (pieces[26] == ' ') ) {
         lf->log += 28;
+        lf->dec_timestamp = lf->full_log + loglen;
+        lf->log[-2] = '\0';
     }
 
 
@@ -381,6 +391,8 @@ int OS_CleanMSG(char *msg, Eventinfo *lf)
               (pieces[20] == ' ') &&
               (pieces[25] == ']') ) {
         lf->log += 27;
+        lf->dec_timestamp = lf->full_log + loglen + 1;
+        lf->log[-2] = '\0';
     }
 
     /* Check for the osx asl log format.
@@ -495,6 +507,9 @@ int OS_CleanMSG(char *msg, Eventinfo *lf)
         while (*lf->log == ' ') {
             lf->log++;
         }
+
+        lf->dec_timestamp = lf->full_log + loglen;
+        lf->log[-1] = '\0';
     }
 
     /* Every message must be in the format
@@ -531,6 +546,7 @@ int OS_CleanMSG(char *msg, Eventinfo *lf)
     if (!alert_only) {
         print_out("**Phase 1: Completed pre-decoding.");
         print_out("       full event: '%s'", lf->full_log);
+        print_out("       timestamp: '%s'", lf->dec_timestamp);
         print_out("       hostname: '%s'", lf->hostname);
         print_out("       program_name: '%s'", lf->program_name);
         print_out("       log: '%s'", lf->log);
