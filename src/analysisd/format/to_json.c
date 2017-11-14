@@ -162,6 +162,7 @@ char *Eventinfo_to_jsonstr(const Eventinfo *lf)
     }
     if(lf->dec_timestamp) {
         cJSON_AddStringToObject(root, "timestamp", lf->dec_timestamp);
+    }
 
     out = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
