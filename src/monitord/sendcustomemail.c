@@ -46,12 +46,13 @@
 #define MAIL_DEBUG(x,y,z) if(MAIL_DEBUG_FLAG) merror(x,y,z)
 
 
-int OS_SendCustomEmail2(char **to, char *subject, char *smtpserver, char *from, char *replyto, char *idsname, char *fname)
+int OS_SendCustomEmail2(char **to, char *subject, char *smtpserver, char *from, char *replyto, char *idsname, char *heloserver, char *fname)
 {
     FILE *sendmail = NULL;
     int socket = -1, i = 0;
     char *msg;
     char snd_msg[128];
+    char helo_msg[128];
     char buffer[2049];
 
     buffer[2048] = '\0';
@@ -82,7 +83,13 @@ int OS_SendCustomEmail2(char **to, char *subject, char *smtpserver, char *from, 
         free(msg);
 
         /* Send HELO message */
-        OS_SendTCP(socket, HELOMSG);
+        memset(helo_msg, '\0', 128);
+        if(heloserver) {
+            snprintf(helo_msg, 127, "Helo %s\r\n", heloserver);
+        } else {
+            snprintf(helo_msg, 127, "Helo %s\r\n", "notify.ossec.net");
+        }
+        OS_SendTCP(socket, snd_msg);
         msg = OS_RecvTCP(socket, OS_SIZE_1024);
         if ((msg == NULL) || (!OS_Match(VALIDMAIL, msg))) {
             if (msg) {

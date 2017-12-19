@@ -120,6 +120,7 @@ int main(int argc, char **argv)
     mond.smtpserver = NULL;
     mond.emailfrom = NULL;
     mond.emailidsname = NULL;
+    mond.heloserver = NULL;
 
     c = 0;
     c |= CREPORTS;
@@ -135,6 +136,7 @@ int main(int argc, char **argv)
         const char *(xml_smtp[]) = {"ossec_config", "global", "smtp_server", NULL};
         const char *(xml_from[]) = {"ossec_config", "global", "email_from", NULL};
         const char *(xml_idsname[]) = {"ossec_config", "global", "email_idsname", NULL};
+        const char *(xml_heloserver[]) = {"ossec_config", "global", "email_idsname", NULL};
 
         if (OS_ReadXML(cfg, &xml) < 0) {
             ErrorExit(CONFIG_ERROR, ARGV0, cfg);
@@ -143,6 +145,7 @@ int main(int argc, char **argv)
         tmpsmtp = OS_GetOneContentforElement(&xml, xml_smtp);
         mond.emailfrom = OS_GetOneContentforElement(&xml, xml_from);
         mond.emailidsname = OS_GetOneContentforElement(&xml, xml_idsname);
+        mond.heloserver = OS_GetOneContentforElement(&xml, xml_heloserver);
 
         if (tmpsmtp && mond.emailfrom) {
             mond.smtpserver = OS_GetHost(tmpsmtp, 5);
