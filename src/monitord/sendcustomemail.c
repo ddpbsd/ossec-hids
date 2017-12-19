@@ -46,7 +46,7 @@
 #define MAIL_DEBUG(x,y,z) if(MAIL_DEBUG_FLAG) merror(x,y,z)
 
 
-int OS_SendCustomEmail2(char **to, char *subject, char *smtpserver, char *from, char *replyto, char *idsname, char *heloserver, char *fname)
+int OS_SendCustomEmail2(char **to, char *subject, char *smtpserver, char *from, char *replyto, char *idsname, char *heloserver)
 {
     FILE *sendmail = NULL;
     int socket = -1, i = 0;

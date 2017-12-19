@@ -86,8 +86,7 @@ void generate_reports(int cday, int cmon, int cyear)
                                               mond.smtpserver,
                                               mond.emailfrom,
                                               mond.emailidsname,
-                                              mond.heloserver,
-                                              fname)
+                                              mond.heloserver)
                            != 0) {
                     merror("%s: WARN: Unable to send report email.", ARGV0);
                 }
