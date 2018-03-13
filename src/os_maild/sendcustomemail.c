@@ -272,6 +272,7 @@ int OS_SendCustomEmail(char **to, char *subject, char *smtpserver, char *from, c
     }
     if(sb.st_size == 0) {
         merror("Report is empty");
+        fclose(fp);
         return(0);
     }
     while (fgets(buffer, 2048, fp) != NULL) {

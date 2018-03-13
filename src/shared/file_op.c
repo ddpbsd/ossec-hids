@@ -376,6 +376,7 @@ char *GetRandomNoise()
 
     buf[2048] = '\0';
     fread(buf, 1, 2048, fp);
+    fclose(fp);
     return(strdup(buf));
 }
 

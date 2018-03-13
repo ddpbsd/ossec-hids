@@ -135,6 +135,7 @@ int OS_RemoveAgent(const char *u_id) {
 
     if (!fp) {
         free(buffer);
+        fclose(fp);
         return 0;
     }
 
@@ -145,6 +146,7 @@ int OS_RemoveAgent(const char *u_id) {
     fsetpos(fp, &fp_pos);
     fprintf(fp, "%s #*#*#*#*#*#*#*#*#*#*#", u_id);
 #endif
+    free(buffer);
     fclose(fp);
 
     /* Remove counter for ID */
