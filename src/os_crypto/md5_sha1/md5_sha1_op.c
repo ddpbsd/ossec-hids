@@ -134,9 +134,9 @@ int OS_Hash_File(const char *fname, const char *prefilter_cmd, struct hash_outpu
 
     /* Initialize both hashes */
     MD5Init(&md5_ctx);
-    snprintf(file_output->hash1, 4, "MD5=");
+    snprintf(file_output->hash1, 5, "MD5=");
     file_output->hash1[4] = '\0';
-    snprintf(file_output->hash2, 7, "SHA256=");
+    snprintf(file_output->hash2, 8, "SHA256=");
     file_output->hash2[7] = '\0';
 
     /* Update for each hash */
