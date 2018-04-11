@@ -384,6 +384,7 @@ char *GetRandomNoise()
             merror("INFO: fread (GetRandomNoise) returned 0.");
         }
     }
+    buf[2048] = '\0';
     return(strdup(buf));
 }
 
