@@ -27,6 +27,7 @@ struct hash_output {
     int check_md5;
     int check_sha1;
     int check_sha256;
+    os_sha1 sha1output;
     os_md5 md5output;
     char sha256output[crypto_hash_sha256_BYTES];
     char hash1[523];
