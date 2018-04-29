@@ -125,6 +125,21 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
         strncpy(file_sums->sha256output, "xxx", 4);
         strncpy(file_sums->hash1, "xxx", 4);
         strncpy(file_sums->hash2, "xxx", 4);
+        if(opts & CHECK_MD5SUM) {
+            file_sums->check_md5 = 1;
+        } else {
+            file_sums->check_md5 = 0;
+        }
+        if(opts & CHECK_SHA1SUM) {
+            file_sums->check_sha1 = 1;
+        } else {
+            file_sums->check_sha1 = 0;
+        }
+        if(opts & CHECK_SHA256SUM) {
+            file_sums->check_sha256 = 1;
+        } else {
+            file_sums->check_sha256 = 0;
+        }
 
         if ((opts & CHECK_MD5SUM) || (opts & CHECK_SHA1SUM) || (opts & CHECK_SHA256SUM)) {
 #else
