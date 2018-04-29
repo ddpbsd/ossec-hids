@@ -375,6 +375,17 @@ char *GetRandomNoise()
         return(NULL);
     }
 
+    frr = fread(buf, 1, 2048, fp);
+    if(frr == 0) {
+        if(errno == EOVERFLOW) {
+            merror("ERROR: GetRandomNoise() fread() overflow.");  // XXX
+            return(NULL);
+        } else {
+            merror("ERROR: GetRandomNoise() fread() returned 0.");
+            return(NULL);
+        }
+    }
+
     buf[2048] = '\0';
     frr = fread(buf, 1, 2048, fp);
     if(frr == 0) {
