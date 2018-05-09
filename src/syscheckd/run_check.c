@@ -324,8 +324,6 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
     /* Clean sums */
     strncpy(file_sums->md5output, "xxx", 4);
     strncpy(file_sums->sha256output, "xxx", 4);
-    strncpy(file_sums->hash1, "xxx", 4);
-    strncpy(file_sums->hash2, "xxx", 4);
 #endif
 
     /* Clean sums */
@@ -396,8 +394,6 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
                 merror("AAA3");
                     strncpy(file_sums->md5output, "xxx", 4);
                     strncpy(file_sums->sha256output, "xxx", 4);
-                    strncpy(file_sums->hash1, "xxx", 4);
-                    strncpy(file_sums->hash2, "xxx", 4);
             }
 #else
             if (OS_MD5_SHA1_File(file_name, syscheck.prefilter_cmd, mf_sum, sf_sum, OS_BINARY) < 0) {
@@ -420,8 +416,6 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
                         merror("AAA4");
                             strncpy(file_sums->md5output, "xxx", 4);
                             strncpy(file_sums->sha256output, "xxx", 4);
-                            strncpy(file_sums->hash1, "xxx", 4);
-                            strncpy(file_sums->hash2, "xxx", 4);
                     }
 #else
                     if (OS_MD5_SHA1_File(file_name, syscheck.prefilter_cmd, mf_sum, sf_sum, OS_BINARY) < 0) {

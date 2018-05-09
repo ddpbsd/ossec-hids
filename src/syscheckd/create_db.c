@@ -123,8 +123,6 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
         }
         strncpy(file_sums->md5output, "xxx", 4);
         strncpy(file_sums->sha256output, "xxx", 4);
-        strncpy(file_sums->hash1, "xxx", 4);
-        strncpy(file_sums->hash2, "xxx", 4);
         if(opts & CHECK_MD5SUM) {
             file_sums->check_md5 = 1;
         } else {
@@ -170,8 +168,6 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
                         if(OS_Hash_File(file_name, syscheck.prefilter_cmd, file_sums, OS_BINARY) < 0) {
                             strncpy(file_sums->md5output, "xxx", 4);
                             strncpy(file_sums->sha256output, "xxx", 4);
-                            strncpy(file_sums->hash1, "xxx", 4);
-                            strncpy(file_sums->hash2, "xxx", 4);
                         }
 
 #else   //LIBSODIUM_ENABLED

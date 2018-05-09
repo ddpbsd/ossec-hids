@@ -105,15 +105,11 @@ int OS_Hash_File(const char *fname, const char *prefilter_cmd, struct hash_outpu
     MD5_CTX md5_ctx;
     if(file_output->check_md5 > 0) {
         MD5Init(&md5_ctx);
-        snprintf(file_output->hash1, 5, "MD5=");
-        file_output->hash1[4] = '\0';
     }
     unsigned char sha1_digest[SHA_DIGEST_LENGTH];
     SHA_CTX sha1_ctx;
     if(file_output->check_sha1 > 0) {
         SHA1_Init(&sha1_ctx);
-        snprintf(file_output->hash2, 8, "SHA1=");
-        file_output->hash1[5] = '\0';
     }
 
     /* Initialize libsodium */
@@ -124,8 +120,6 @@ int OS_Hash_File(const char *fname, const char *prefilter_cmd, struct hash_outpu
     crypto_hash_sha256_state sha256_state;
     if(file_output->check_sha256 > 0) {
         crypto_hash_sha256_init(&sha256_state);
-        snprintf(file_output->hash2, 8, "SHA1=");
-        file_output->hash2[7] = '\0';
     }
 
     buf[2048 + 1] = '\0';
@@ -174,7 +168,7 @@ int OS_Hash_File(const char *fname, const char *prefilter_cmd, struct hash_outpu
         crypto_hash_sha256_final(&sha256_state, sha256_digest);
     }
 
-    char md5tmp[3], sha1tmp[3], sha256tmp[3], hash1tmp[3], hash2tmp[3];
+    char md5tmp[3], sha1tmp[3], sha256tmp[3];
 
     /* Set output for MD5 */
     if(file_output->check_md5 > 0) {
@@ -185,8 +179,6 @@ int OS_Hash_File(const char *fname, const char *prefilter_cmd, struct hash_outpu
                 snprintf(md5tmp, 3, "%02x", md5_digest[n]);
                 strncat(file_output->md5output, md5tmp, sizeof(file_output->md5output) - 1 - strlen(file_output->md5output));
             }
-            snprintf(hash1tmp, 3, "%02x", md5_digest[n]);
-            strncat(file_output->hash1, hash1tmp, sizeof(file_output->hash1) - 1 - strlen(file_output->hash1));
         }
     }
 
@@ -199,8 +191,6 @@ int OS_Hash_File(const char *fname, const char *prefilter_cmd, struct hash_outpu
                 snprintf(sha1tmp, 3, "%02x", sha1_digest[n]);
                 strncat(file_output->sha1output, sha1tmp, sizeof(file_output->sha1output) - 1 - strlen(file_output->sha1output));
             }
-            snprintf(hash1tmp, 3, "%02x", sha1_digest[n]);
-            strncat(file_output->hash1, hash1tmp, sizeof(file_output->hash1) - 1 - strlen(file_output->hash1));
         }
     }
 
@@ -214,8 +204,6 @@ int OS_Hash_File(const char *fname, const char *prefilter_cmd, struct hash_outpu
                 snprintf(sha256tmp, 3, "%02x", sha256_digest[n]);
                 strncat(file_output->sha256output, sha256tmp, sizeof(file_output->sha256output) - 1 - strlen(file_output->md5output));
             }
-            snprintf(hash2tmp, 3, "%02x", sha256_digest[n]);
-            strncat(file_output->hash2, hash2tmp, sizeof(file_output->hash2) - 1 - strlen(file_output->hash2));
         }
     }
 
