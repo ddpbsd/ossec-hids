@@ -81,17 +81,20 @@ ifeq (${uname_S},Darwin)
 else
 ifeq (${uname_S},FreeBSD)
 		DEFINES+=-DFreeBSD
+		DEFINES+=-DHAVE_STRLCAT
 		OSSEC_LDFLAGS+=-pthread
 		LUA_PLAT=freebsd
 else
 ifeq (${uname_S},NetBSD)
 		DEFINES+=-DNetBSD
+		DEFINES+=-DHAVE_STRLCAT
 		OSSEC_LDFLAGS+=-pthread
 		LUA_PLAT=posix
 else
 ifeq (${uname_S},OpenBSD)
 #		DEFINES+=-DOpenBSD
 		DEFINES+=-pthread
+		DEFINES+=-DHAVE_STRLCAT
 		LUA_PLAT=posix
 		CFLAGS+=-I/usr/local/include
 		OSSEC_LDFLAGS+=-L/usr/local/lib
