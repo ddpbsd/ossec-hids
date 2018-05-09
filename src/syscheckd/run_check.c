@@ -429,17 +429,35 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
     }
 #endif
 
+
+#ifdef LIBSODIUM_ENABLED
+    /* Set new_hashes to the new hashes */ 
+    /* XXX This doesn't currently handle only checking 1 hash, there has to be a better way to do this
+     * Unfortunately my sinuses refuse to allow me to find it XXX */
+    char new_hashes[256];
+    if((file_sums->check_md5 > 0) && (file_sums->check_sha1 > 0)) {
+	    snprintf(new_hashes, 255, "%s:%s", file_sums->md5output, file_sums->sha1output);
+    } else if((file_sums->check_md5 > 0) && (file_sums->check_sha256 > 0)) {
+	    snprintf(new_hashes, 255, "%s:%s", file_sums->md5output, file_sums->sha256output);
+    } else if((file_sums->check_sha1 > 0) && (file_sums->check_sha256 > 0)) {
+	    snprintf(new_hashes, 255, "%s:%s", file_sums->sha1output, file_sums->sha256output);
+    } else {
+	    strncpy(new_hashes, "xxx:xxx", 8);
+    }
+
+
+#endif	// LIBSODIUM_ENABLED
+
     newsum[0] = '\0';
     newsum[255] = '\0';
 
 #ifdef LIBSODIUM_ENABLED
-    snprintf(newsum, 255, "%ld:%d:%d:%d:%s:%s",
+    snprintf(newsum, 255, "%ld:%d:%d:%d:%s",
              size == 0 ? 0 : (long)statbuf.st_size,
              perm == 0 ? 0 : (int)statbuf.st_mode,
              owner == 0 ? 0 : (int)statbuf.st_uid,
              group == 0 ? 0 : (int)statbuf.st_gid,
-             file_sums->md5output,
-             file_sums->sha256output);
+             new_hashes);
 #else
     snprintf(newsum, 255, "%ld:%d:%d:%d:%s:%s",
              size == 0 ? 0 : (long)statbuf.st_size,
