@@ -12,6 +12,9 @@
 #include "os_crypto/sha1/sha1_op.h"
 #include "monitord.h"
 
+#ifndef HAVE_STRLCPY
+#include "openbsd-compat.h"
+#endif	// HAVE_STRLCPY
 
 /* Sign a log file */
 void OS_SignLog(const char *logfile, const char *logfile_old, int log_missing)
