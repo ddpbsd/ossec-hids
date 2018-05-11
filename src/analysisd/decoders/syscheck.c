@@ -632,10 +632,10 @@ int DecodeSyscheck(Eventinfo *lf)
     char *p;
     char stmt[OS_MAXSTR + 1];
     sqlite3_stmt *res;
-#endif
     int error = 0;
     int rec_count = 0;
     const char *tail;
+#endif
 
     /* Every syscheck message must be in the following format:
      * checksum filename
