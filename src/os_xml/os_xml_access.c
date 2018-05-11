@@ -14,6 +14,10 @@
 #include "os_xml.h"
 #include "os_xml_internal.h"
 
+#ifndef HAVE_STRLCPY
+#include "openbsd-compat.h"
+#endif  // HAVE_STRLCPY
+
 /* Prototypes */
 static char **_GetElements(const OS_XML *_lxml, const char **element_name, XML_TYPE type) __attribute__((nonnull(1)));
 static char **_GetElementContent(OS_XML *_lxml, const char **element_name, const char *attr) __attribute__((nonnull(1, 2)));
