@@ -113,7 +113,11 @@ static char **_GetElements(const OS_XML *_lxml, const char **element_name, XML_T
                 if (ret[k] == NULL) {
                     goto fail;
                 }
-                strncpy(ret[k], _lxml->el[i], el_size - 1);
+                if((strlcpy(ret[k], _lxml->el[i], el_size)) > el_size) {
+                    merror("variable too long");
+                    // XXX Do we need to free ret here like in fail?
+                    return(NULL);
+                }
                 k++;
             }
         }
@@ -153,6 +157,7 @@ fail:
     }
     return (NULL);
 }
+
 
 /* Get one value for a specific element */
 char *OS_GetOneContentforElement(OS_XML *_lxml, const char **element_name)

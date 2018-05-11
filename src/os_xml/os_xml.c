@@ -18,6 +18,10 @@
 #include "os_xml.h"
 #include "os_xml_internal.h"
 
+#ifndef HAVE_STRLCPY
+#include "openbsd-compat.h"
+#endif  // HAVE_STRLCPY
+
 /* Prototypes */
 static int _oscomment(FILE *fp) __attribute__((nonnull));
 static int _writecontent(const char *str, size_t size, unsigned int parent, OS_XML *_lxml) __attribute__((nonnull));
@@ -340,7 +344,10 @@ static int _writememory(const char *str, XML_TYPE type, size_t size,
     if (_lxml->el[_lxml->cur] == NULL) {
         goto fail;
     }
-    strncpy(_lxml->el[_lxml->cur], str, size - 1);
+    if((strlcpy(_lxml->el[_lxml->cur], str, size)) > size) {
+        snprintf(_lxml->err, XML_ERR_LENGTH, "variable overflow, possible truncation");
+        return(-1);
+    }
 
     /* Allocate for the content */
     tmp = (char **)realloc(_lxml->ct, (_lxml->cur + 1) * sizeof(char *));
@@ -400,6 +407,7 @@ fail:
     return (-1);
 }
 
+
 static int _writecontent(const char *str, size_t size, unsigned int parent, OS_XML *_lxml)
 {
     _lxml->ct[parent] = (char *)calloc(size, sizeof(char));
@@ -407,7 +415,10 @@ static int _writecontent(const char *str, size_t size, unsigned int parent, OS_X
         snprintf(_lxml->err, XML_ERR_LENGTH, "XMLERR: Memory error.");
         return (-1);
     }
-    strncpy(_lxml->ct[parent], str, size - 1);
+    if((strlcpy(_lxml->ct[parent], str, size)) > size) {
+        snprintf(_lxml->err, XML_ERR_LENGTH, "variable overflow, possible truncation");
+        return(-1);
+    }
 
     return (0);
 }

@@ -14,6 +14,9 @@
 #include "os_xml.h"
 #include "os_xml_internal.h"
 
+#ifndef HAVE_STRLCPY
+#include "openbsd-compat.h"
+#endif  // HAVE_STRLCPY
 
 int OS_ApplyVariables(OS_XML *_lxml)
 {
@@ -59,7 +62,7 @@ int OS_ApplyVariables(OS_XML *_lxml)
                         var[s] = _lxml->ct[j];
 
                         /* Clean the lxml->err */
-                        strncpy(_lxml->err, " ", 3);
+                        strlcpy(_lxml->err, " ", 3);
 
                         _found_var = 1;
                         break;
@@ -91,7 +94,7 @@ int OS_ApplyVariables(OS_XML *_lxml)
 
             value[s] = _lxml->ct[i];
 
-            strncpy(_lxml->err, " ", 3);
+            strlcpy(_lxml->err, " ", 3);
             s++;
         } else if (((_lxml->tp[i] == XML_ELEM) || (_lxml->tp[i] == XML_ATTR)) &&
                    (_lxml->ct[i])) {
@@ -158,14 +161,27 @@ int OS_ApplyVariables(OS_XML *_lxml)
                                     goto fail;
                                 }
 
-                                strncpy(_lxml->ct[i], var_placeh, tsize);
+                                if((strlcpy(_lxml->ct[i], var_placeh, tsize)) > tsize) {
+                                    snprintf(_lxml->err, XML_ERR_LENGTH, "XMLERR: variable "
+                                            "too long, possible truncation");
+                                    goto fail;
+                                }
 
+
+                                // XXX Look at the errors here.
                                 _lxml->ct[i][init] = '\0';
-                                strncat(_lxml->ct[i], value[j], tsize - init);
+                                if((strlcat(_lxml->ct[i], value[j], tsize - init)) > tsize - init) {
+                                    snprintf(_lxml->err, XML_ERR_LENGTH, "XMLERR: variable "
+                                            "too long, possible truncation");
+                                    goto fail;
+                                }
 
                                 init = strlen(_lxml->ct[i]);
-                                strncat(_lxml->ct[i], p,
-                                        tsize - strlen(_lxml->ct[i]));
+                                if((strlcat(_lxml->ct[i], p, tsize - strlen(_lxml->ct[i]))) > tsize - strlen(_lxml->ct[i])) {
+                                    snprintf(_lxml->err, XML_ERR_LENGTH, "XMLERR: variable "
+                                            "too long, possible truncation");
+                                    goto fail;
+                                }
 
                                 free(var_placeh);
                                 var_placeh = NULL;
