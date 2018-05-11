@@ -32,6 +32,10 @@
 #include "shared.h"
 #include "check_cert.h"
 
+#ifndef HAVE_STRLCPY
+#include "openbsd-compat.h"
+#endif  // HAVE_STRLCPY
+
 
 /* Compare the manager's name or IP address given on the command line with the
  * subject alternative names and common names present in a received certificate.
@@ -227,8 +231,9 @@ int label_array(const char *domain_name, label result[DNS_MAX_LABELS])
                 return VERIFY_FALSE;
             }
 
-            strncpy(new_label->text, label_start, new_label->len);
-            new_label->text[new_label->len] = '\0';
+            if((strlcpy(new_label->text, label_start, new_label->len)) > new_label->len) {
+                merror("authd: ERRO: label_start too long, possible data truncation.");
+            }
 
             label_start = label_end + 1;
             label_count++;

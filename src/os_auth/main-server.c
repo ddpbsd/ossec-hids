@@ -38,6 +38,10 @@ int main()
 #include "auth.h"
 #include "os_crypto/md5/md5_op.h"
 
+#ifndef HAVE_STRLCPY
+#include "openbsd-compat.h"
+#endif  // HAVE_STRLCPY
+
 /* TODO: Pulled this value out of the sky, may or may not be sane */
 #define POOL_SIZE 512
 
@@ -487,7 +491,9 @@ int main(int argc, char **argv)
                     }
 
                     /* Check for duplicate names */
-                    strncpy(fname, agentname, 2048);
+                    if((strlcpy(fname, agentname, sizeof(fname))) > sizeof(fname)) {
+                            merror("ossec-authd: ERROR: agentname longer than fname. Possible data truncation.");
+                    }
                     while (NameExist(fname)) {
                         snprintf(fname, 2048, "%s%d", agentname, acount);
                         acount++;
