@@ -13,6 +13,10 @@
 #include "os_crypto/sha1/sha1_op.h"
 #include "os_crypto/md5_sha1/md5_sha1_op.h"
 
+#ifndef HAVE_STRLCPY
+#include "openbsd-compat.h"
+#endif  // HAVE_STRLCPY
+
 /* Prototypes */
 static int read_file(const char *dir_name, int opts, OSMatch *restriction)  __attribute__((nonnull(1)));
 static int read_dir(const char *dir_name, int opts, OSMatch *restriction) __attribute__((nonnull(1)));
@@ -108,10 +112,10 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
         os_sha1 sf_sum3;
 
         /* Clean sums */
-        strncpy(mf_sum,  "xxx", 4);
-        strncpy(sf_sum,  "xxx", 4);
-        strncpy(sf_sum2, "xxx", 4);
-        strncpy(sf_sum3, "xxx", 4);
+        strlcpy(mf_sum,  "xxx", 4);
+        strlcpy(sf_sum,  "xxx", 4);
+        strlcpy(sf_sum2, "xxx", 4);
+        strlcpy(sf_sum3, "xxx", 4);
 
         /* Generate checksums */
 #ifdef LIBSODIUM_ENABLED
@@ -121,10 +125,10 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
         if(file_sums == NULL) {
             merror("file_sums malloc failed: %s", strerror(errno));
         }
-        strncpy(file_sums->md5output, "xxx", 4);
-        strncpy(file_sums->sha256output, "xxx", 4);
-        strncpy(file_sums->hash1, "xxx", 4);
-        strncpy(file_sums->hash2, "xxx", 4);
+        strlcpy(file_sums->md5output, "xxx", 4);
+        strlcpy(file_sums->sha256output, "xxx", 4);
+        strlcpy(file_sums->hash1, "xxx", 4);
+        strlcpy(file_sums->hash2, "xxx", 4);
 
         if ((opts & CHECK_MD5SUM) || (opts & CHECK_SHA1SUM) || (opts & CHECK_SHA256SUM)) {
 #else
@@ -153,16 +157,16 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
                     if (S_ISREG(statbuf_lnk.st_mode)) {
 #ifdef LIBSODIUM_ENABLED
                         if(OS_Hash_File(file_name, syscheck.prefilter_cmd, file_sums, OS_BINARY) < 0) {
-                            strncpy(file_sums->md5output, "xxx", 4);
-                            strncpy(file_sums->sha256output, "xxx", 4);
-                            strncpy(file_sums->hash1, "xxx", 4);
-                            strncpy(file_sums->hash2, "xxx", 4);
+                            strlcpy(file_sums->md5output, "xxx", 4);
+                            strlcpy(file_sums->sha256output, "xxx", 4);
+                            strlcpy(file_sums->hash1, "xxx", 4);
+                            strlcpy(file_sums->hash2, "xxx", 4);
                         }
 
 #else   //LIBSODIUM_ENABLED
                         if (OS_MD5_SHA1_File(file_name, syscheck.prefilter_cmd, mf_sum, sf_sum, OS_BINARY) < 0) {
-                            strncpy(mf_sum, "xxx", 4);
-                            strncpy(sf_sum, "xxx", 4);
+                            strlcpy(mf_sum, "xxx", 4);
+                            strlcpy(sf_sum, "xxx", 4);
                         }
 #endif  //LIBSODIUM_ENABLED
                     }
@@ -176,8 +180,8 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
             if (OS_MD5_SHA1_File(file_name, syscheck.prefilter_cmd, mf_sum, sf_sum, OS_BINARY) < 0)
 #endif
             {
-                strncpy(mf_sum, "xxx", 4);
-                strncpy(sf_sum, "xxx", 4);
+                strlcpy(mf_sum, "xxx", 4);
+                strlcpy(sf_sum, "xxx", 4);
             }
 
             if (opts & CHECK_SEECHANGES) {
@@ -394,7 +398,10 @@ static int read_dir(const char *dir_name, int opts, OSMatch *restriction)
             continue;
         }
 
-        strncpy(f_name, dir_name, PATH_MAX);
+        if((strlcpy(f_name, dir_name, PATH_MAX)) > PATH_MAX) {
+		merror("ossec-syscheckd: ERROR: dir_name exceeds size of PATH_MAX, possible truncation.");
+		return(-1);
+	}
         s_name =  f_name;
         s_name += dir_size;
 
@@ -404,7 +411,10 @@ static int read_dir(const char *dir_name, int opts, OSMatch *restriction)
         }
 
         *s_name = '\0';
-        strncpy(s_name, entry->d_name, PATH_MAX - dir_size - 2);
+        if((strlcpy(s_name, entry->d_name, PATH_MAX - dir_size - 2)) > PATH_MAX - dir_size - 2) {
+		merror("ossec-syscheckd: ERROR: entry->d_name longer than expected, possible truncation.");
+		return(-1);
+	}
 
         /* Check integrity of the file */
         read_file(f_name, opts, restriction);

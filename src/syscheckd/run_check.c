@@ -24,6 +24,10 @@
 #include "os_crypto/md5_sha1/md5_sha1_op.h"
 #include "rootcheck/rootcheck.h"
 
+#ifndef HAVE_STRLCPY
+#include "openbsd-compat.h"
+#endif  // HAVE_STRLCPY
+
 /* Prototypes */
 static void send_sk_db(void);
 
@@ -322,15 +326,15 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
     }
 
     /* Clean sums */
-    strncpy(file_sums->md5output, "xxx", 4);
-    strncpy(file_sums->sha256output, "xxx", 4);
-    strncpy(file_sums->hash1, "xxx", 4);
-    strncpy(file_sums->hash2, "xxx", 4);
+    strlcpy(file_sums->md5output, "xxx", 4);
+    strlcpy(file_sums->sha256output, "xxx", 4);
+    strlcpy(file_sums->hash1, "xxx", 4);
+    strlcpy(file_sums->hash2, "xxx", 4);
 #endif
 
     /* Clean sums */
-    strncpy(mf_sum, "xxx", 4);
-    strncpy(sf_sum, "xxx", 4);
+    strlcpy(mf_sum, "xxx", 4);
+    strlcpy(sf_sum, "xxx", 4);
 
     /* Stat the file */
 #ifdef WIN32
@@ -394,15 +398,15 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
 #ifdef LIBSODIUM_ENABLED
             if (OS_Hash_File(file_name, syscheck.prefilter_cmd, file_sums, OS_BINARY) < 0) {
                 merror("AAA3");
-                    strncpy(file_sums->md5output, "xxx", 4);
-                    strncpy(file_sums->sha256output, "xxx", 4);
-                    strncpy(file_sums->hash1, "xxx", 4);
-                    strncpy(file_sums->hash2, "xxx", 4);
+                    strlcpy(file_sums->md5output, "xxx", 4);
+                    strlcpy(file_sums->sha256output, "xxx", 4);
+                    strlcpy(file_sums->hash1, "xxx", 4);
+                    strlcpy(file_sums->hash2, "xxx", 4);
             }
 #else
             if (OS_MD5_SHA1_File(file_name, syscheck.prefilter_cmd, mf_sum, sf_sum, OS_BINARY) < 0) {
-                strncpy(sf_sum, "xxx", 4);
-                strncpy(mf_sum, "xxx", 4);
+                strlcpy(sf_sum, "xxx", 4);
+                strlcpy(mf_sum, "xxx", 4);
             }
 #endif
         }
@@ -418,15 +422,15 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
 #ifdef LIBSODIUM_ENABLED
                     if (OS_Hash_File(file_name, syscheck.prefilter_cmd, file_sums, OS_BINARY) < 0) {
                         merror("AAA4");
-                            strncpy(file_sums->md5output, "xxx", 4);
-                            strncpy(file_sums->sha256output, "xxx", 4);
-                            strncpy(file_sums->hash1, "xxx", 4);
-                            strncpy(file_sums->hash2, "xxx", 4);
+                            strlcpy(file_sums->md5output, "xxx", 4);
+                            strlcpy(file_sums->sha256output, "xxx", 4);
+                            strlcpy(file_sums->hash1, "xxx", 4);
+                            strlcpy(file_sums->hash2, "xxx", 4);
                     }
 #else
                     if (OS_MD5_SHA1_File(file_name, syscheck.prefilter_cmd, mf_sum, sf_sum, OS_BINARY) < 0) {
-                        strncpy(sf_sum, "xxx", 4);
-                        strncpy(mf_sum, "xxx", 4);
+                        strlcpy(sf_sum, "xxx", 4);
+                        strlcpy(mf_sum, "xxx", 4);
                     }
 #endif
                 }
