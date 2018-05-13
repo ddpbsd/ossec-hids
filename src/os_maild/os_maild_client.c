@@ -61,8 +61,12 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
             break;
         }
 
-        strncat(logs, al_data->log[i], body_size);
-        strncat(logs, "\r\n", body_size);
+        if((strlcat(logs, al_data->log[i], body_size)) > body_size) {
+            merror("ossec-maild: ERROR: al_data->log[i] too long, possible truncation.");
+        }
+        if((strlcat(logs, "\r\n", body_size)) > body_size) {
+            merror("ossec-maild: ERROR: line feeds too long, psosible truncation.");
+        }
         body_size -= log_size;
         i++;
     }
@@ -70,36 +74,54 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
     if (al_data->old_md5) {
         log_size = strlen(al_data->old_md5) + 16 + 4;
         if (body_size > log_size) {
-            strncat(logs, "Old md5sum was: ", 16);
-            strncat(logs, al_data->old_md5, body_size);
-            strncat(logs, "\r\n", 4);
+            if((strlcat(logs, "Old md5sum was: ", 16)) > 16) {
+                merror("ossec-maild: ERROR: message too long, possible truncation.");
+            }
+            if((strlcat(logs, al_data->old_md5, body_size)) > body_size) {
+                merror("ossec-maild: ERROR: message too long, possible truncation.");
+            }
+            if((strlcat(logs, "\r\n", 4)) > body_size) {
+                merror("ossec-maild: ERROR: message too long, possible truncation.");
+            }
             body_size -= log_size;
         }
     }
     if (al_data->new_md5) {
         log_size = strlen(al_data->new_md5) + 16 + 4;
         if (body_size > log_size) {
-            strncat(logs, "New md5sum is : ", 16);
-            strncat(logs, al_data->new_md5, body_size);
-            strncat(logs, "\r\n", 4);
+            strlcat(logs, "New md5sum is : ", 16);
+            if((strlcat(logs, al_data->new_md5, body_size)) > body_size) {
+                merror("ossec-maild: ERROR: al_data->new_md5 too long, possible truncation.");
+            }
+            if((strlcat(logs, "\r\n", 4)) > body_size) {
+                merror("ossec-maild: ERROR: line feed too long, possible truncation.");
+            }
             body_size -= log_size;
         }
     }
     if (al_data->old_sha1) {
         log_size = strlen(al_data->old_sha1) + 17 + 4;
         if (body_size > log_size) {
-            strncat(logs, "Old sha1sum was: ", 17);
-            strncat(logs, al_data->old_sha1, body_size);
-            strncat(logs, "\r\n", 4);
+            strlcat(logs, "Old sha1sum was: ", 17);
+            if((strlcat(logs, al_data->old_sha1, body_size)) > body_size) {
+                merror("ossec-maild: ERROR: al_data->old_sha1 too longm posible truncation.");
+            }
+            if((strlcat(logs, "\r\n", 4)) > body_size) {
+                merror("ossec-maild: ERROR: line feed too long, possible truncation.");
+            }
             body_size -= log_size;
         }
     }
     if (al_data->new_sha1) {
         log_size = strlen(al_data->new_sha1) + 17 + 4;
         if (body_size > log_size) {
-            strncat(logs, "New sha1sum is : ", 17);
-            strncat(logs, al_data->new_sha1, body_size);
-            strncat(logs, "\r\n", 4);
+            strlcat(logs, "New sha1sum is : ", 17);
+            if((strlcat(logs, al_data->new_sha1, body_size)) > body_size) {
+                merror("ossec-maild: ERROR: al_data->new_sha1 too long, posisble truncation.");
+            }
+            if((strlcat(logs, "\r\n", 4)) > body_size) {
+                merror("ossec-maild: ERROR: line feeds too long, possible truncation.");
+            }
             body_size -= log_size;
         }
     }

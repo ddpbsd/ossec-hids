@@ -14,6 +14,10 @@
 #include "maild.h"
 #include "mail_list.h"
 
+#ifndef HAVE_STRLCPY
+#include "openbsd-compat.h"
+#endif  // HAVE_STRLCPY
+
 /* Return codes (from SMTP server) */
 #define VALIDBANNER     "220"
 #define VALIDMAIL       "250"
@@ -170,7 +174,9 @@ int OS_Sendsms(MailConfig *mail, struct tm *p, MailMsg *sms_msg)
                 /* Create header for to */
                 memset(snd_msg, '\0', 128);
                 snprintf(snd_msg, 127, TO, mail->gran_to[i]);
-                strncat(final_to, snd_msg, final_to_sz);
+                if((strlcat(final_to, snd_msg, final_to_sz)) > final_to_sz) {
+                    merror("ossec-maild: ERROR: snd_msg too long, possible truncation.");
+                }
                 final_to_sz -= strlen(snd_msg) + 2;
 
                 i++;
