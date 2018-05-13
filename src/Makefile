@@ -730,6 +730,8 @@ libcJSON.a: ${cjson_o}
 .PHONY: compat
 compat: compat/strlcat.o compat/strlcpy.o
 
+STRLSRC=compat/strlcpy.o
+STRLSRC+=compat/strlcat.o
 #os_strl_c := $(wildcard compat/*.c)
 #os_strl_o := $(os_strl_c:.c=.o)
 os_strlcpy_c := compat/strlcpy.c)
@@ -871,7 +873,7 @@ os_maild/%.o: os_maild/%.c
 	${OSSEC_CC} ${OSSEC_CFLAGS} -DARGV0=\"ossec-maild\" -c $^ -o $@
 
 ossec-maild: ${os_maild_o} ${ossec_libs}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ./compat/strlcpy.o ${OSSEC_LDFLAGS} -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ${STRLSRC} ${OSSEC_LDFLAGS} -o $@
 
 #### os_dbd ##########
 
@@ -882,7 +884,7 @@ os_dbd/%.o: os_dbd/%.c
 	${OSSEC_CC} ${OSSEC_CFLAGS} ${MI} ${PI} -DARGV0=\"ossec-dbd\" -c $^ -o $@
 
 ossec-dbd: ${os_dbd_o} ${ossec_libs}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${MI} ${PI} ${JSON_INCLUDE} $^ -lm ${OSSEC_LDFLAGS} ./compat/strlcpy.o ./compat/strlcat.o -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${MI} ${PI} ${JSON_INCLUDE} $^ -lm ${OSSEC_LDFLAGS} ${STRLSRC} -o $@
 
 
 #### os_csyslogd #####
@@ -894,7 +896,7 @@ os_csyslogd/%.o: os_csyslogd/%.c
 	${OSSEC_CC} ${OSSEC_CFLAGS} ${JSON_INCLUDE} -DARGV0=\"ossec-csyslogd\" -c $^ -o $@
 
 ossec-csyslogd: ${os_csyslogd_o} ${ossec_libs} ${JSON_LIB}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${JSON_INCLUDE} $^ -lm ${OSSEC_LDFLAGS} ./compat/strlcpy.o -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${JSON_INCLUDE} $^ -lm ${OSSEC_LDFLAGS} ${STRLSRC} -o $@
 
 
 #### agentlessd ####
@@ -906,7 +908,7 @@ agentlessd/%.o: agentlessd/%.c
 	${OSSEC_CC} ${OSSEC_CFLAGS} -DARGV0=\"ossec-agentlessd\" -c $^ -o $@
 
 ossec-agentlessd: ${os_agentlessd_o} ${ossec_libs}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ${OSSEC_LDFLAGS} ./compat/strlcpy.o -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ${OSSEC_LDFLAGS} ${STRLSRC} -o $@
 
 #### os_execd #####
 
@@ -917,7 +919,7 @@ os_execd/%.o: os_execd/%.c
 	${OSSEC_CC} ${OSSEC_CFLAGS} -DARGV0=\"ossec-execd\" -c $^ -o $@
 
 ossec-execd: ${os_execd_o} ${ossec_libs} ${JSON_LIB}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${JSON_INCLUDE} $^ -lm ${OSSEC_LDFLAGS} ./compat/strlcpy.o -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${JSON_INCLUDE} $^ -lm ${OSSEC_LDFLAGS} ${STRLSRC} -o $@
 
 
 #### logcollectord ####
@@ -933,7 +935,7 @@ logcollector/%-event.o: logcollector/%.c
 	${OSSEC_CC} ${OSSEC_CFLAGS} -DEVENTCHANNEL_SUPPORT -DARGV0=\"ossec-logcollector\" -c $^ -o $@
 
 ossec-logcollector: ${os_logcollector_o} ${ossec_libs}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ${OSSEC_LDFLAGS} ./compat/strlcpy.o -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ${OSSEC_LDFLAGS} ${STRLSRC} -o $@
 
 #### remoted #########
 
@@ -944,7 +946,7 @@ remoted/%.o: remoted/%.c
 	${OSSEC_CC} ${OSSEC_CFLAGS} -I./remoted ${ZLIB_INCLUDE} -DARGV0=\"ossec-remoted\" -c $^ -o $@
 
 ossec-remoted: ${remoted_o} ${ossec_libs} ${ZLIB_LIB}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${ZLIB_INCLUDE} $^ ${OSSEC_LDFLAGS} ./compat/strlcpy.o -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${ZLIB_INCLUDE} $^ ${OSSEC_LDFLAGS} ${STRLSRC} -o $@
 
 #### ossec-agentd ####
 
@@ -955,7 +957,7 @@ client-agent/%.o: client-agent/%.c
 	${OSSEC_CC} ${OSSEC_CFLAGS} -I./client-agent ${ZLIB_INCLUDE} -DARGV0=\"ossec-agentd\" -c $^ -o $@
 
 ossec-agentd: ${client_agent_o} ${ossec_libs} ${ZLIB_LIB}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${ZLIB_INCLUDE} $^ ${OSSEC_LDFLAGS} ./compat/strlcpy.o -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${ZLIB_INCLUDE} $^ ${OSSEC_LDFLAGS} ${STRLSRC} -o $@
 
 #### addagent ######
 
@@ -992,7 +994,7 @@ list_agents: util/list_agents.o ${ossec_libs} ${ZLIB_LIB}
 	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${ZLIB_INCLUDE} $^ ${OSSEC_LDFLAGS} -o $@
 
 verify-agent-conf: util/verify-agent-conf.o ${ossec_libs} ${ZLIB_LIB}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${ZLIB_INCLUDE} $^ ${OSSEC_LDFLAGS} ./compat/strlcpy.o -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${ZLIB_INCLUDE} $^ ${OSSEC_LDFLAGS} ${STRLSRC} -o $@
 
 agent_control: util/agent_control.o addagent/validate.o ${ossec_libs} ${ZLIB_LIB}
 	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${ZLIB_INCLUDE} $^ ${OSSEC_LDFLAGS} -o $@
@@ -1042,7 +1044,7 @@ syscheckd/%.o: syscheckd/%.c
 	${OSSEC_CC} ${OSSEC_CFLAGS} -DARGV0=\"ossec-syscheckd\" -c $^ -o $@
 
 ossec-syscheckd: ${syscheck_o} rootcheck.a os_crypto.a ${ossec_libs} ${ZLIB_LIB}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${ZLIB_INCLUDE} $^ ${OSSEC_LDFLAGS} ./compat/strlcpy.o -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${ZLIB_INCLUDE} $^ ${OSSEC_LDFLAGS} ${STRLSRC} -o $@
 
 #### Monitor #######
 
@@ -1080,7 +1082,7 @@ agent-auth: addagent/validate.o os_auth/main-client.o os_auth/ssl.o os_auth/chec
 	${OSSEC_CCBIN} ${OSSEC_CFLAGS} -I./os_auth $^ ${OSSEC_LDFLAGS} -o $@
 
 ossec-authd: addagent/validate.o os_auth/main-server.o os_auth/ssl.o os_auth/check_cert.o ${ossec_libs} ${ZLIB_LIB}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} -I./os_auth ./compat/strlcpy.o $^ ${OSSEC_LDFLAGS} -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} -I./os_auth ${STRLSRC} $^ ${OSSEC_LDFLAGS} -o $@
 
 #### analysisd #####
 
@@ -1179,13 +1181,13 @@ analysisd/%-test.o: analysisd/%.c analysisd/compiled_rules/compiled_rules.h
 
 
 ossec-logtest: ${analysisd_test_o} ${output_o} ${format_o} analysisd/testrule-test.o analysisd/analysisd-test.o alerts.a cdb.a decoders-test.a ${ossec_libs} ${ZLIB_LIB} ${JSON_LIB}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} -DTESTRULE $^ ${OSSEC_LDFLAGS} ${ANALYSISD_FLAGS} ./compat/strlcpy.o ./compat/strlcat.o -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} -DTESTRULE $^ ${OSSEC_LDFLAGS} ${ANALYSISD_FLAGS} ${STRLSRC} -o $@
 
 ossec-analysisd: ${analysisd_live_o} analysisd/analysisd-live.o ${output_o} ${format_o} alerts.a cdb.a decoders-live.a ${ossec_libs} ${ZLIB_LIB} ${JSON_LIB}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS}  $^ ${OSSEC_LDFLAGS} ${ANALYSISD_FLAGS} ./compat/strlcpy.o  ./compat/strlcat.o -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS}  $^ ${OSSEC_LDFLAGS} ${ANALYSISD_FLAGS} ${STRLSRC}  -o $@
 
 ossec-makelists: analysisd/makelists-live.o ${analysisd_live_o} ${format_o} alerts.a cdb.a decoders-live.a ${ossec_libs} ${ZLIB_LIB} ${JSON_LIB}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS}  $^ ${OSSEC_LDFLAGS} ./compat/strlcpy.o ./compat/strlcat.o -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS}  $^ ${OSSEC_LDFLAGS} ${STRLSRC} -o $@
 
 
 ####################
