@@ -13,6 +13,9 @@
 #include "config/config.h"
 #endif
 
+#ifndef HAVE_STRLCPY
+#include "openbsd-compat.h"
+#endif  // HAVE_STRLCPY
 
 /* Receive a Message on the Mail queue */
 MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
@@ -293,11 +296,15 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
         /* Get highest level for alert */
         if (_g_subject[0] != '\0') {
             if (_g_subject_level < al_data->level) {
-                strncpy(_g_subject, mail->subject, SUBJECT_SIZE);
+                if((strlcpy(_g_subject, mail->subject, SUBJECT_SIZE)) > SUBJECT_SIZE) {
+                    merror("ossec-maild: ERROR: mail->subject is too long, possible truncation.");
+                }
                 _g_subject_level = al_data->level;
             }
         } else {
-            strncpy(_g_subject, mail->subject, SUBJECT_SIZE);
+            if((strlcpy(_g_subject, mail->subject, SUBJECT_SIZE)) > SUBJECT_SIZE) {
+                merror("ossec-maild: ERROR: mail->subject is too long, possible truncation.");
+            }
             _g_subject_level = al_data->level;
         }
     }
@@ -317,7 +324,9 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
                  al_data->comment);
 
 
-        strncpy(msg_sms_tmp->body, logs, 128);
+        if((strlcpy(msg_sms_tmp->body, logs, 128)) > 128) {
+            merror("ossec-maild: ERROR: logs too long, possible truncation.");
+        }
         msg_sms_tmp->body[127] = '\0';
         *msg_sms = msg_sms_tmp;
     }
