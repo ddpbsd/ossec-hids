@@ -161,6 +161,19 @@ int OS_ApplyVariables(OS_XML *_lxml)
                                     goto fail;
                                 }
 
+                                strncpy(_lxml->ct[i], var_placeh, tsize);
+
+                                _lxml->ct[i][init] = '\0';
+                                strncat(_lxml->ct[i], value[j], tsize - init);
+
+                                init = strlen(_lxml->ct[i]);
+                                strncat(_lxml->ct[i], p,
+                                        tsize - strlen(_lxml->ct[i]));
+
+
+                                /* XXX The first strlcat doesn't work. value[j] == 8,
+                                 * tsize = init == 8. Not sure where to add 1 for the NULL
+                                 * termination. Will come back to this one.
                                 if((strlcpy(_lxml->ct[i], var_placeh, tsize)) > tsize) {
                                     snprintf(_lxml->err, XML_ERR_LENGTH, "XMLERR: variable "
                                             "too long, possible truncation");
@@ -168,7 +181,6 @@ int OS_ApplyVariables(OS_XML *_lxml)
                                 }
 
 
-                                // XXX Look at the errors here.
                                 _lxml->ct[i][init] = '\0';
                                 if((strlcat(_lxml->ct[i], value[j], tsize - init)) > tsize - init) {
                                     snprintf(_lxml->err, XML_ERR_LENGTH, "XMLERR: variable "
@@ -182,6 +194,7 @@ int OS_ApplyVariables(OS_XML *_lxml)
                                             "too long, possible truncation");
                                     goto fail;
                                 }
+                                */
 
                                 free(var_placeh);
                                 var_placeh = NULL;
