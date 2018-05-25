@@ -10,18 +10,14 @@
 #ifndef __MD5SHA1_OP_H
 #define __MD5SHA1_OP_H
 
-#ifdef LIBSODIUM_ENABLED
 #include <sodium.h>
-#endif  //LIBSODIUM_ENABLED
 
 #include "../md5/md5_op.h"
 #include "../sha1/sha1_op.h"
 
-int OS_MD5_SHA1_File(const char *fname, const char *prefilter_cmd, os_md5 md5output, os_sha1 sha1output, int mode) __attribute((nonnull(1, 3, 4)));
 
 #endif
 
-#ifdef LIBSODIUM_ENABLED
 
 struct hash_output {
     int check_md5;
@@ -33,5 +29,4 @@ struct hash_output {
 };
 
 int OS_Hash_File(const char *fname, const char *prefilter_cmd, struct hash_output *file_output, int mode);
-#endif
 
