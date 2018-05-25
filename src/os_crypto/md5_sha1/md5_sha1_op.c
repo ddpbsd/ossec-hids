@@ -128,7 +128,7 @@ int OS_Hash_File(const char *fname, const char *prefilter_cmd, struct hash_outpu
             } else {
                 sha256tmp[0] = '\0';
                 snprintf(sha256tmp, 3, "%02x", sha256_digest[n]);
-                strncat(file_output->sha256output, sha256tmp, sizeof(file_output->sha256output) - 1 - strlen(file_output->md5output));
+                strncat(file_output->sha256output, sha256tmp, sizeof(file_output->sha256output) - 1 - strlen(file_output->sha256output));
             }
         }
     }
