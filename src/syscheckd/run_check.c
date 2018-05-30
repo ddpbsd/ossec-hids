@@ -12,6 +12,10 @@
 #define _GNU_SOURCE
 #include <sched.h>
 #endif
+#ifdef WIN32
+#include <aclapi.h>
+#include <sddl.h>
+#endif
 
 #include <sodium.h>
 
@@ -429,13 +433,57 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
     newsum[255] = '\0';
 
     snprintf(newsum, 255, "%ld:%d:%d:%d:%s",
+#ifndef WIN32
+    snprintf(newsum, 255, "%ld:%d:%d:%d:%s",
              size == 0 ? 0 : (long)statbuf.st_size,
              perm == 0 ? 0 : (int)statbuf.st_mode,
              owner == 0 ? 0 : (int)statbuf.st_uid,
              group == 0 ? 0 : (int)statbuf.st_gid,
              new_hashes);
+#else
+    HANDLE hFile = CreateFile(file_name, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        DWORD dwErrorCode = GetLastError();
+        char alert_msg[PATH_MAX+4];
+        alert_msg[PATH_MAX + 3] = '\0';
+        snprintf(alert_msg, PATH_MAX + 4, "CreateFile=%ld %s", dwErrorCode, file_name);
+        send_syscheck_msg(alert_msg);
+        return -1;
+    }
+
+    PSID pSidOwner = NULL;
+    PSECURITY_DESCRIPTOR pSD = NULL;
+    DWORD dwRtnCode = GetSecurityInfo(hFile, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION, &pSidOwner, NULL, NULL, NULL, &pSD);
+    if (dwRtnCode != ERROR_SUCCESS) {
+        DWORD dwErrorCode = GetLastError();
+        CloseHandle(hFile);
+        char alert_msg[PATH_MAX+4];
+        alert_msg[PATH_MAX + 3] = '\0';
+        snprintf(alert_msg, PATH_MAX + 4, "GetSecurityInfo=%ld %s", dwErrorCode, file_name);
+        send_syscheck_msg(alert_msg);
+        return -1;
+    }
+
+    LPSTR szSID = NULL;
+    ConvertSidToStringSid(pSidOwner, &szSID);
+    char* st_uid = NULL;
+    if( szSID ) {
+      st_uid = (char *) calloc( strlen(szSID) + 1, 1 );
+      memcpy( st_uid, szSID, strlen(szSID) );
+    }
+    LocalFree(szSID);
+    CloseHandle(hFile);
+
+    snprintf(newsum, 255, "%ld:%d:%s:%d:%s:%s",
+             size == 0 ? 0 : (long)statbuf.st_size,
+             perm == 0 ? 0 : (int)statbuf.st_mode,
+             owner == 0 ? "0" : st_uid,
+             group == 0 ? 0 : (int)statbuf.st_gid,
+             new_hashes;
+
+    free(st_uid);
+#endif
 
     free(file_sums);
     return (0);
 }
-
