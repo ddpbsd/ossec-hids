@@ -432,7 +432,6 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
     newsum[0] = '\0';
     newsum[255] = '\0';
 
-    snprintf(newsum, 255, "%ld:%d:%d:%d:%s",
 #ifndef WIN32
     snprintf(newsum, 255, "%ld:%d:%d:%d:%s",
              size == 0 ? 0 : (long)statbuf.st_size,
