@@ -165,7 +165,9 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
                 if (stat(file_name, &statbuf_lnk) == 0) {
                     if (S_ISREG(statbuf_lnk.st_mode)) {
                         if(OS_Hash_File(file_name, syscheck.prefilter_cmd, file_sums, OS_BINARY) < 0) {
+                            merror("ossec-syscheckd: ERROR: OS_HashFile failed (1)");
                             strncpy(file_sums->md5output, "xxx", 4);
+                            strncpy(file_sums->sha1output, "xxx", 4);
                             strncpy(file_sums->sha256output, "xxx", 4);
                         }
 
@@ -176,6 +178,7 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
             if (OS_MD5_SHA1_File(file_name, syscheck.prefilter_cmd, mf_sum, sf_sum, OS_BINARY) < 0)
 #endif
             {
+                if(OS_Hash_File(file_name, syscheck.prefilter_cmd, file_sums, OS_BINARY) < 0) {
                 strncpy(mf_sum, "xxx", 4);
                 strncpy(sf_sum, "xxx", 4);
             }
