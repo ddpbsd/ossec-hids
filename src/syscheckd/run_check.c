@@ -12,6 +12,10 @@
 #define _GNU_SOURCE
 #include <sched.h>
 #endif
+#ifdef WIN32
+#include <aclapi.h>
+#include <sddl.h>
+#endif
 
 #ifdef LIBSODIUM_ENABLED
 #include <sodium.h>
@@ -317,6 +321,7 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
     struct stat statbuf;
     os_md5 mf_sum;
     os_sha1 sf_sum;
+    extern int syscheck_opts;
 
 #ifdef LIBSODIUM_ENABLED
     struct hash_output *file_sums;
@@ -326,11 +331,25 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
     }
 
     /* Clean sums */
-    strlcpy(file_sums->md5output, "xxx", 4);
-    strlcpy(file_sums->sha256output, "xxx", 4);
-    strlcpy(file_sums->hash1, "xxx", 4);
-    strlcpy(file_sums->hash2, "xxx", 4);
-#endif
+    strncpy(file_sums->md5output, "xxx", 4);
+    strncpy(file_sums->sha256output, "xxx", 4);
+    strncpy(file_sums->sha1output, "xxx", 4);
+    strncpy(file_sums->genericoutput, "xxx", 4);
+    /* set the checks */
+    if(syscheck_opts & CHECK_MD5SUM) {
+        file_sums->check_md5 = 1;
+    }
+    if(syscheck_opts & CHECK_SHA1SUM) {
+        file_sums->check_sha1 = 1;
+    }
+    if(syscheck_opts & CHECK_SHA256SUM) {
+        file_sums->check_sha256 = 1;
+    }
+    if(syscheck_opts & CHECK_GENERIC) {
+        file_sums->check_generic = 1;
+    }
+
+#endif // LIBSODIUM_ENABLED
 
     /* Clean sums */
     strlcpy(mf_sum, "xxx", 4);
@@ -397,11 +416,8 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
             /* Generate checksums of the file */
 #ifdef LIBSODIUM_ENABLED
             if (OS_Hash_File(file_name, syscheck.prefilter_cmd, file_sums, OS_BINARY) < 0) {
-                merror("AAA3");
-                    strlcpy(file_sums->md5output, "xxx", 4);
-                    strlcpy(file_sums->sha256output, "xxx", 4);
-                    strlcpy(file_sums->hash1, "xxx", 4);
-                    strlcpy(file_sums->hash2, "xxx", 4);
+                    strncpy(file_sums->md5output, "xxx", 4);
+                    strncpy(file_sums->sha256output, "xxx", 4);
             }
 #else
             if (OS_MD5_SHA1_File(file_name, syscheck.prefilter_cmd, mf_sum, sf_sum, OS_BINARY) < 0) {
@@ -421,11 +437,8 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
                     /* Generate checksums of the file */
 #ifdef LIBSODIUM_ENABLED
                     if (OS_Hash_File(file_name, syscheck.prefilter_cmd, file_sums, OS_BINARY) < 0) {
-                        merror("AAA4");
-                            strlcpy(file_sums->md5output, "xxx", 4);
-                            strlcpy(file_sums->sha256output, "xxx", 4);
-                            strlcpy(file_sums->hash1, "xxx", 4);
-                            strlcpy(file_sums->hash2, "xxx", 4);
+                            strncpy(file_sums->md5output, "xxx", 4);
+                            strncpy(file_sums->sha256output, "xxx", 4);
                     }
 #else
                     if (OS_MD5_SHA1_File(file_name, syscheck.prefilter_cmd, mf_sum, sf_sum, OS_BINARY) < 0) {
@@ -443,14 +456,44 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
     newsum[255] = '\0';
 
 #ifdef LIBSODIUM_ENABLED
-    snprintf(newsum, 255, "%ld:%d:%d:%d:%s:%s",
+    char new_hashes[512], new_hashes_tmp[512];
+    int hashc = 0;
+    if(syscheck_opts & CHECK_SHA256SUM) {
+        snprintf(new_hashes, 511, "%s", file_sums->sha256output);
+        hashc++;
+    }
+    if((syscheck_opts & CHECK_SHA1SUM) && hashc < 2) {
+        if(hashc > 0) {
+            snprintf(new_hashes_tmp, 511, "%s:%s", new_hashes, file_sums->sha1output);
+            strncpy(new_hashes, new_hashes_tmp, 511);
+            hashc++;
+        } else if(hashc == 0) {                                                                                                                 snprintf(new_hashes, 511, "%s", file_sums->sha1output);
+            hashc++;
+        }
+    }
+        if((syscheck_opts & CHECK_MD5SUM) && hashc < 2) {
+            if(hashc > 0) {                                                                                                                         snprintf(new_hashes_tmp, 511, "%s:%s", new_hashes, file_sums->md5output);
+                strncpy(new_hashes, new_hashes_tmp, 511);
+                hashc++;
+            } else if(hashc == 0) {
+                snprintf(new_hashes, 511, "%s", file_sums->md5output);                                                                              hashc++;
+            }
+        }
+        if(hashc < 2) {
+            if(hashc == 0) {
+                strncpy(new_hashes, "xxx:xxx", 8);
+            } else if (hashc == 1) {                                                                                                                snprintf(new_hashes_tmp, 511, "%s:xxx", new_hashes);
+                strncpy(new_hashes, new_hashes_tmp, 511);
+            }                                                                                                                               }
+
+    snprintf(newsum, 255, "%ld:%d:%d:%d:%s",
              size == 0 ? 0 : (long)statbuf.st_size,
              perm == 0 ? 0 : (int)statbuf.st_mode,
              owner == 0 ? 0 : (int)statbuf.st_uid,
              group == 0 ? 0 : (int)statbuf.st_gid,
-             file_sums->md5output,
-             file_sums->sha256output);
-#else
+             new_hashes);
+#else //LIBSODIUM_ENABLED
+#ifndef WIN32
     snprintf(newsum, 255, "%ld:%d:%d:%d:%s:%s",
              size == 0 ? 0 : (long)statbuf.st_size,
              perm == 0 ? 0 : (int)statbuf.st_mode,
@@ -458,11 +501,54 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
              group == 0 ? 0 : (int)statbuf.st_gid,
              md5sum   == 0 ? "xxx" : mf_sum,
              sha1sum  == 0 ? "xxx" : sf_sum);
-#endif
+#else //WIN32
+    HANDLE hFile = CreateFile(file_name, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        DWORD dwErrorCode = GetLastError();
+        char alert_msg[PATH_MAX+4];
+        alert_msg[PATH_MAX + 3] = '\0';
+        snprintf(alert_msg, PATH_MAX + 4, "CreateFile=%ld %s", dwErrorCode, file_name);
+        send_syscheck_msg(alert_msg);
+        return -1;
+    }
+
+    PSID pSidOwner = NULL;
+    PSECURITY_DESCRIPTOR pSD = NULL;
+    DWORD dwRtnCode = GetSecurityInfo(hFile, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION, &pSidOwner, NULL, NULL, NULL, &pSD);
+    if (dwRtnCode != ERROR_SUCCESS) {
+        DWORD dwErrorCode = GetLastError();
+        CloseHandle(hFile);
+        char alert_msg[PATH_MAX+4];
+        alert_msg[PATH_MAX + 3] = '\0';
+        snprintf(alert_msg, PATH_MAX + 4, "GetSecurityInfo=%ld %s", dwErrorCode, file_name);
+        send_syscheck_msg(alert_msg);
+        return -1;
+    }
+
+    LPSTR szSID = NULL;
+    ConvertSidToStringSid(pSidOwner, &szSID);
+    char* st_uid = NULL;
+    if( szSID ) {
+      st_uid = (char *) calloc( strlen(szSID) + 1, 1 );
+      memcpy( st_uid, szSID, strlen(szSID) );
+    }
+    LocalFree(szSID);
+    CloseHandle(hFile);
+
+    snprintf(newsum, 255, "%ld:%d:%s:%d:%s:%s",
+             size == 0 ? 0 : (long)statbuf.st_size,
+             perm == 0 ? 0 : (int)statbuf.st_mode,
+             owner == 0 ? "0" : st_uid,
+             group == 0 ? 0 : (int)statbuf.st_gid,
+             md5sum   == 0 ? "xxx" : mf_sum,
+             sha1sum  == 0 ? "xxx" : sf_sum);
+
+    free(st_uid);
+#endif //WIN32
+#endif //LIBSODIUM_ENABLED
 
 #ifdef LIBSODIUM_ENABLED
     free(file_sums);
 #endif
     return (0);
 }
-
