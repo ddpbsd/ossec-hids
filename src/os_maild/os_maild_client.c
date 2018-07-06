@@ -24,6 +24,7 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
     int i = 0, sms_set = 0, donotgroup = 0;
     size_t body_size = OS_MAXSTR - 3, log_size;
     char logs[OS_MAXSTR + 1];
+    merror("OS_MAXSTR: %s", OS_MAXSTR);
     char extra_data[OS_MAXSTR + 1];
     char log_string[OS_MAXSTR / 4 + 1];
     char *subject_host;
@@ -62,10 +63,10 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
         }
 
         if((strlcat(logs, al_data->log[i], body_size)) > body_size) {
-            merror("ossec-maild: ERROR: al_data->log[i] too long, possible truncation.");
+            merror("ossec-maild: ERROR: al_data->log[i] too long, possible truncation. (%s) (0x01)", al_data->log[i]);
         }
         if((strlcat(logs, "\r\n", body_size)) > body_size) {
-            merror("ossec-maild: ERROR: line feeds too long, psosible truncation.");
+            merror("ossec-maild: ERROR: line feeds too long, psosible truncation. (0x02)");
         }
         body_size -= log_size;
         i++;
@@ -75,13 +76,13 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
         log_size = strlen(al_data->old_md5) + 16 + 4;
         if (body_size > log_size) {
             if((strlcat(logs, "Old md5sum was: ", 16)) > 16) {
-                merror("ossec-maild: ERROR: message too long, possible truncation.");
+                merror("ossec-maild: ERROR: message too long, possible truncation.(0x03)");
             }
             if((strlcat(logs, al_data->old_md5, body_size)) > body_size) {
-                merror("ossec-maild: ERROR: message too long, possible truncation.");
+                merror("ossec-maild: ERROR: message too long, possible truncation.(0x04)");
             }
             if((strlcat(logs, "\r\n", 4)) > body_size) {
-                merror("ossec-maild: ERROR: message too long, possible truncation.");
+                merror("ossec-maild: ERROR: message too long, possible truncation.(0x05)");
             }
             body_size -= log_size;
         }
@@ -91,10 +92,10 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
         if (body_size > log_size) {
             strlcat(logs, "New md5sum is : ", 16);
             if((strlcat(logs, al_data->new_md5, body_size)) > body_size) {
-                merror("ossec-maild: ERROR: al_data->new_md5 too long, possible truncation.");
+                merror("ossec-maild: ERROR: al_data->new_md5 too long, possible truncation.(0x06)");
             }
             if((strlcat(logs, "\r\n", 4)) > body_size) {
-                merror("ossec-maild: ERROR: line feed too long, possible truncation.");
+                merror("ossec-maild: ERROR: line feed too long, possible truncation.(0x07)");
             }
             body_size -= log_size;
         }
@@ -104,10 +105,10 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
         if (body_size > log_size) {
             strlcat(logs, "Old sha1sum was: ", 17);
             if((strlcat(logs, al_data->old_sha1, body_size)) > body_size) {
-                merror("ossec-maild: ERROR: al_data->old_sha1 too longm posible truncation.");
+                merror("ossec-maild: ERROR: al_data->old_sha1 too longm posible truncation.(0x08)");
             }
             if((strlcat(logs, "\r\n", 4)) > body_size) {
-                merror("ossec-maild: ERROR: line feed too long, possible truncation.");
+                merror("ossec-maild: ERROR: line feed too long, possible truncation.(0x09)");
             }
             body_size -= log_size;
         }
@@ -117,10 +118,10 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
         if (body_size > log_size) {
             strlcat(logs, "New sha1sum is : ", 17);
             if((strlcat(logs, al_data->new_sha1, body_size)) > body_size) {
-                merror("ossec-maild: ERROR: al_data->new_sha1 too long, posisble truncation.");
+                merror("ossec-maild: ERROR: al_data->new_sha1 too long, posisble truncation.(0x0a)");
             }
             if((strlcat(logs, "\r\n", 4)) > body_size) {
-                merror("ossec-maild: ERROR: line feeds too long, possible truncation.");
+                merror("ossec-maild: ERROR: line feeds too long, possible truncation.(0x0b)");
             }
             body_size -= log_size;
         }
@@ -319,13 +320,13 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
         if (_g_subject[0] != '\0') {
             if (_g_subject_level < al_data->level) {
                 if((strlcpy(_g_subject, mail->subject, SUBJECT_SIZE)) > SUBJECT_SIZE) {
-                    merror("ossec-maild: ERROR: mail->subject is too long, possible truncation.");
+                    merror("ossec-maild: ERROR: mail->subject is too long, possible truncation.(0x0c)");
                 }
                 _g_subject_level = al_data->level;
             }
         } else {
             if((strlcpy(_g_subject, mail->subject, SUBJECT_SIZE)) > SUBJECT_SIZE) {
-                merror("ossec-maild: ERROR: mail->subject is too long, possible truncation.");
+                merror("ossec-maild: ERROR: mail->subject is too long, possible truncation.(0x0d)");
             }
             _g_subject_level = al_data->level;
         }
@@ -347,7 +348,7 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
 
 
         if((strlcpy(msg_sms_tmp->body, logs, 128)) > 128) {
-            merror("ossec-maild: ERROR: logs too long, possible truncation.");
+            merror("ossec-maild: ERROR: logs too long, possible truncation.(0x0e)");
         }
         msg_sms_tmp->body[127] = '\0';
         *msg_sms = msg_sms_tmp;
