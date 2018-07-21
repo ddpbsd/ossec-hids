@@ -279,9 +279,6 @@ int OS_SendCustomEmail2(char **to, char *subject, char *smtpserver, char *from, 
         if(sendmail) {
             pclose(sendmail);
         }
-        if(fp) {
-            fclose(fp);
-        }
 
         return(1);
     }
