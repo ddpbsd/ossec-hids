@@ -27,6 +27,7 @@
 #include "analysisd.h"
 #include "fts.h"
 #include "cleanevent.h"
+#include "analysisd/format/to_json.h"
 
 /** Internal Functions **/
 void OS_ReadMSG(char *ut_str);
@@ -35,6 +36,7 @@ void OS_ReadMSG(char *ut_str);
 RuleInfo *OS_CheckIfRuleMatch(Eventinfo *lf, RuleNode *curr_node);
 
 void DecodeEvent(Eventinfo *lf);
+int json_out = 0;
 
 /* Print help statement */
 __attribute__((noreturn))
@@ -86,7 +88,7 @@ int main(int argc, char **argv)
     geoipdb = NULL;
 #endif
 
-    while ((c = getopt(argc, argv, "VatvdhU:D:c:q")) != -1) {
+    while ((c = getopt(argc, argv, "VatvdhU:D:c:qj")) != -1) {
         switch (c) {
             case 'V':
                 print_version();
@@ -119,6 +121,10 @@ int main(int argc, char **argv)
                 cfg = optarg;
                 break;
             case 'a':
+                alert_only = 1;
+                break;
+            case 'j':
+                json_out = 1;
                 alert_only = 1;
                 break;
             case 'q':
@@ -536,7 +542,12 @@ void OS_ReadMSG(char *ut_str)
                 /* Log the alert if configured to */
                 if (currently_rule->alert_opts & DO_LOGALERT) {
                     if (alert_only) {
-                        OS_LogOutput(lf);
+                        if(json_out) {
+                            char *jsonstuff = Eventinfo_to_jsonstr(lf);
+                            printf("%s\n", jsonstuff);
+                        } else {
+                            OS_LogOutput(lf);
+                        }
                         __crt_ftell++;
                     } else {
                         print_out("**Alert to be generated.\n\n");
