@@ -503,7 +503,7 @@ void OS_ReadMSG(char *ut_str)
 #endif
 
                 /* Ignore level 0 */
-                if (currently_rule->level == 0) {
+                if (currently_rule->level == 0 && !json_out) {
                     break;
                 }
 
@@ -540,7 +540,7 @@ void OS_ReadMSG(char *ut_str)
                 }
 
                 /* Log the alert if configured to */
-                if (currently_rule->alert_opts & DO_LOGALERT) {
+                if (currently_rule->alert_opts & DO_LOGALERT || json_out) {
                     if (alert_only) {
                         if(json_out) {
                             char *jsonstuff = Eventinfo_to_jsonstr(lf);
