@@ -26,9 +26,7 @@
 #define MAIL_SUBJECT_FULL   "OSSEC Alert - %s - Level %d - %s"
 
 /* Full subject without ossec in the name */
-#ifdef CLEANFULL
 #define MAIL_SUBJECT_FULL2   "%d - %s - %s"
-#endif
 
 #ifdef LIBGEOIP_ENABLED
 #define MAIL_BODY           "\r\nOSSEC HIDS Notification.\r\n" \
