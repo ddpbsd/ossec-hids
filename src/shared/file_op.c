@@ -366,7 +366,7 @@ char *GetRandomNoise()
 {
     FILE *fp;
     char buf[2048 + 1];
-    int frr = 0;
+    size_t frr = 0;
 
     /* Reading urandom */
     fp = fopen("/dev/urandom", "r");
@@ -377,17 +377,10 @@ char *GetRandomNoise()
 
     frr = fread(buf, 1, 2048, fp);
     if(frr == 0) {
-        if(errno == EOVERFLOW) {
-            merror("ERROR: GetRandomNoise() fread() overflow.");  // XXX
-            fclose(fp);
-            return(NULL);
-        } else {
-            merror("ERROR: GetRandomNoise() fread() returned 0.");
-            fclose(fp);
-            return(NULL);
-        }
+        merror("ERROR: GetRandomNoise() fread() returned 0.");
+        fclose(fp);
+        return(NULL);
     }
-
     buf[2048] = '\0';
     fclose(fp);
     return(strdup(buf));
