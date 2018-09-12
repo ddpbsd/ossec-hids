@@ -264,23 +264,16 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
 
             /* If we got here, everything matched. Set this e-mail to be used. */
             if (gr_set) {
-                if (Mail->gran_format[i] == SMS_FORMAT) {
-                    Mail->gran_set[i] = SMS_FORMAT;
-
-                    /* Set the SMS flag */
-                    sms_set = 1;
+                /* Options */
+                if (Mail->gran_format[i] == FORWARD_NOW) {
+                    Mail->priority = 1;
+                    Mail->gran_set[i] = FULL_FORMAT;
+                } else if (Mail->gran_format[i] == DONOTGROUP) {
+                    Mail->priority = DONOTGROUP;
+                    Mail->gran_set[i] = DONOTGROUP;
+                    donotgroup = 1;
                 } else {
-                    /* Options */
-                    if (Mail->gran_format[i] == FORWARD_NOW) {
-                        Mail->priority = 1;
-                        Mail->gran_set[i] = FULL_FORMAT;
-                    } else if (Mail->gran_format[i] == DONOTGROUP) {
-                        Mail->priority = DONOTGROUP;
-                        Mail->gran_set[i] = DONOTGROUP;
-                        donotgroup = 1;
-                    } else {
-                        Mail->gran_set[i] = FULL_FORMAT;
-                    }
+                    Mail->gran_set[i] = FULL_FORMAT;
                 }
             }
             i++;
@@ -300,26 +293,6 @@ MailMsg *OS_RecvMailQ(file_queue *fileq, struct tm *p,
             strncpy(_g_subject, mail->subject, SUBJECT_SIZE);
             _g_subject_level = al_data->level;
         }
-    }
-
-    /* If SMS is set, create the SMS output */
-    if (sms_set) {
-        MailMsg *msg_sms_tmp;
-
-        /* Allocate memory for SMS */
-        os_calloc(1, sizeof(MailMsg), msg_sms_tmp);
-        os_calloc(BODY_SIZE, sizeof(char), msg_sms_tmp->body);
-        os_calloc(SUBJECT_SIZE, sizeof(char), msg_sms_tmp->subject);
-
-        snprintf(msg_sms_tmp->subject, SUBJECT_SIZE - 1, SMS_SUBJECT,
-                 al_data->level,
-                 al_data->rule,
-                 al_data->comment);
-
-
-        strncpy(msg_sms_tmp->body, logs, 128);
-        msg_sms_tmp->body[127] = '\0';
-        *msg_sms = msg_sms_tmp;
     }
 
     /* Clear the memory */
