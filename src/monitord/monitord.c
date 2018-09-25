@@ -22,10 +22,10 @@ void Monitord()
 {
 
 #if __OpenBSD__
-    if(unveil("/var/ossec/etc/shared", "rw") == -1) {
+    if(unveil("/etc/shared", "rw") == -1) {
         ErrorExit("unveil shared failed");
     }
-    if(unveil("/var/ossec/logs", "rw") == -1) {
+    if(unveil("/logs", "rw") == -1) {
         ErrorExit("unveil logs failed");
     }
     if(unveil(NULL,NULL) == -1) {
