@@ -7,6 +7,10 @@
  * Foundation
  */
 
+#if __OpenBSD__
+#include <unistd.h>
+#endif  // __OpenBSD__
+
 #include "shared.h"
 #include "monitord.h"
 
@@ -16,6 +20,18 @@ monitor_config mond;
 
 void Monitord()
 {
+
+#if __OpenBSD__
+    if(unveil("/etc/shared", "rw") == -1) {
+        ErrorExit("unveil shared failed");
+    }
+    if(unveil("/logs", "rw") == -1) {
+        ErrorExit("unveil logs failed");
+    }
+    if(unveil(NULL,NULL) == -1) {
+        ErrorExit("unveil nULL failed");
+    }
+#endif  // __OpenBSD__
     time_t tm;
     struct tm *p;
 
