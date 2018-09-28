@@ -28,6 +28,15 @@ void Monitord()
     if(unveil("/logs", "rw") == -1) {
         ErrorExit("unveil logs failed");
     }
+    if(unveil("/queue/ossec/queue", "rw") == -1) {
+        ErrorExit("unveil queue failed");
+    }
+    if(unveil("/queue/agent-info", "rw") == -1) {
+        ErrorExit("unveil agent-info failed");
+    }
+    if(unveil("/logs/alerts", "rw") == -1) {
+        ErrorExit("unveil nULL failed");
+    }
     if(unveil(NULL,NULL) == -1) {
         ErrorExit("unveil nULL failed");
     }
