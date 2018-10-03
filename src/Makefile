@@ -23,7 +23,7 @@ OSSEC_USER_REM?=ossecr
 USE_PRELUDE?=no
 USE_ZEROMQ?=no
 USE_GEOIP?=no
-USE_INOTIFY=no
+USE_INOTIFY?=no
 USE_SQLITE?=no
 USE_LIBSODIUM?=no
 
@@ -103,6 +103,7 @@ ifeq (${uname_S},OpenBSD)
 		DEFINES+=-pthread
 		LUA_PLAT=posix
 		CFLAGS+=-I/usr/local/include
+		CFLAGS+=-I/usr/local/include/inotify
 		OSSEC_LDFLAGS+=-L/usr/local/lib
 else
 ifeq (${uname_S},HP-UX)
