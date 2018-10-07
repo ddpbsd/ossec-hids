@@ -1291,7 +1291,6 @@ clean-test:
 
 clean-external:
 	rm -f ${cjson_o} libcJSON.a
-	echo ZLIB
 ifneq (,$(filter ${ZLIB_SYSTEM},no))
 	echo ${ZLIB_SYSTEM}
 	cd ${EXTERNAL_ZLIB} && ${MAKE} -f Makefile.in distclean
