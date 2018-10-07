@@ -5,7 +5,7 @@ uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
 EXTERNAL_JSON=external/cJSON/
 EXTERNAL_LUA=external/lua-5.2.3/
 EXTERNAL_ZLIB=external/zlib-1.2.11/
-ZLIB_SYSTEM?=no
+ZLIB_SYSTEM?=yes
 LUA_PLAT=posix
 LUA_ENABLE?=yes
 MAXAGENTS?=2048
@@ -1309,7 +1309,9 @@ clean-test:
 
 clean-external:
 	rm -f ${cjson_o} libcJSON.a
+ifneq (${ZLIB_SYSTEM},no)
 	cd ${EXTERNAL_ZLIB} && ${MAKE} -f Makefile.in distclean
+endif
 	cd ${EXTERNAL_LUA} && ${MAKE} clean
 
 
