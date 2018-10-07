@@ -1291,10 +1291,11 @@ clean-test:
 
 clean-external:
 	rm -f ${cjson_o} libcJSON.a
-ifneq (${ZLIB_SYSTEM},no)
+	echo ZLIB
+ifneq (,$(filter ${ZLIB_SYSTEM},no))
+	echo ${ZLIB_SYSTEM}
 	cd ${EXTERNAL_ZLIB} && ${MAKE} -f Makefile.in distclean
 endif
-	cd ${EXTERNAL_LUA} && ${MAKE} clean
 
 clean-internals:
 	rm -f ${os_zlib_o} os_zlib.a
