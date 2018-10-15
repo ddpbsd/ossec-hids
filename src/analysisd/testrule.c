@@ -82,10 +82,6 @@ int main(int argc, char **argv)
     active_responses = NULL;
     memset(prev_month, '\0', 4);
 
-#ifdef LIBGEOIP_ENABLED
-    geoipdb = NULL;
-#endif
-
     while ((c = getopt(argc, argv, "VatvdhU:D:c:q")) != -1) {
         switch (c) {
             case 'V':
@@ -144,11 +140,12 @@ int main(int argc, char **argv)
     Config.geoip_jsonout = getDefine_Int("analysisd", "geoip_jsonout", 0, 1);
 
     /* Opening GeoIP DB */
-    if(Config.geoipdb_file) {
-        geoipdb = GeoIP_open(Config.geoipdb_file, GEOIP_INDEX_CACHE);
-        if (geoipdb == NULL)
-        {
-            merror("%s: Unable to open GeoIP database from: %s (disabling GeoIP).", ARGV0, Config.geoipdb_file);
+    MMDB_s geoipdb;
+    int status = MMDB_open(Config.geoipdb_file, MMDB_MODE_MMAP, &geoipdb);
+    if(status != MMDB_SUCCESS) {
+        merror("%s: ERROR: Cannot open geoipdb: %s", __local_name, MMDB_strerror(status));
+        if(status == MMDB_IO_ERROR) {
+            merror("%s: ERROR: IO error: %s", __local_name, strerror(errno));
         }
     }
 #endif

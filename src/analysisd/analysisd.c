@@ -45,6 +45,10 @@
 #include "syscheck-sqlite.h"
 #endif
 
+#ifdef LIBGEOIP_ENABLED
+#include <maxminddb.h>
+#endif
+
 /** Prototypes **/
 void OS_ReadMSG(int m_queue);
 RuleInfo *OS_CheckIfRuleMatch(Eventinfo *lf, RuleNode *curr_node);
@@ -131,11 +135,6 @@ int main_analysisd(int argc, char **argv)
     hourly_events = 0;
     hourly_syscheck = 0;
     hourly_firewall = 0;
-
-#ifdef LIBGEOIP_ENABLED
-    geoipdb = NULL;
-#endif
-
 
     while ((c = getopt(argc, argv, "Vtdhfu:g:D:c:")) != -1) {
         switch (c) {
@@ -231,13 +230,15 @@ int main_analysisd(int argc, char **argv)
      Config.geoip_jsonout = getDefine_Int("analysisd", "geoip_jsonout", 0, 1);
 
     /* Opening GeoIP DB */
-    if(Config.geoipdb_file) {
-        geoipdb = GeoIP_open(Config.geoipdb_file, GEOIP_INDEX_CACHE);
-        if (geoipdb == NULL)
-        {
-            merror("%s: ERROR: Unable to open GeoIP database from: %s (disabling GeoIP).", ARGV0, Config.geoipdb_file);
-        }
-    }
+     MMDB_s geoipdb;
+     int status = MMDB_open(Config.geoipdb_file, MMDB_MODE_MMAP, &geoipdb);
+     if(status != MMDB_SUCCESS) {
+         merror("%s: ERROR: Cannot open geoipdb: %s", __local_name, MMDB_strerror(status));
+         if(status == MMDB_IO_ERROR) {
+             merror("%s: ERROR: IO error: %s", __local_name, strerror(errno));
+         }
+     }
+
 #endif
 
 

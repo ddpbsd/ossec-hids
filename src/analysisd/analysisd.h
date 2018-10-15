@@ -32,5 +32,8 @@ extern OSDecoderInfo *NULL_Decoder;
 
 #define OSSEC_SERVER    "ossec-server"
 
+#ifdef USE_GEOIP
+int goipdb_success;
+#endif
 #endif /* _LOGAUDIT__H */
 
