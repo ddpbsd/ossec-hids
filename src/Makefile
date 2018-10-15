@@ -218,7 +218,7 @@ endif # USE_ZEROMQ
 
 ifneq (,$(filter ${USE_GEOIP},auto yes y Y 1))
 	DEFINES+=-DLIBGEOIP_ENABLED
-	OSSEC_LDFLAGS+=-lGeoIP
+	OSSEC_LDFLAGS+=-lmaxminddb
 endif # USE_GEOIP
 
 ifneq (,$(filter ${USE_LIBSODIUM},auto yes y Y 1))
