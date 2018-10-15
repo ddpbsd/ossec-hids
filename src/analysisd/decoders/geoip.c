@@ -60,12 +60,10 @@ char *GetGeoInfobyIP(char *ip_addr)
             int cc = MMDB_get_value(&geo_result.entry, &entry_data, "country", "iso_code", NULL);
             if(cc != MMDB_SUCCESS) {
                 MMDB_free_entry_data_list(entry_data_list);
-                MMDB_close(&geoipdb);
                 return(NULL);
             }
             if(!entry_data.has_data || entry_data.type != MMDB_DATA_TYPE_UTF8_STRING) {
                 MMDB_free_entry_data_list(entry_data_list);
-                MMDB_close(&geoipdb);
                 return(NULL);
             }
             snprintf(country_code, 3, "%.2s", entry_data.utf8_string);
@@ -74,13 +72,11 @@ char *GetGeoInfobyIP(char *ip_addr)
             }
 
             MMDB_free_entry_data_list(entry_data_list);
-            MMDB_close(&geoipdb);
             return(country_code);
         }
     } else {
         debug1("%s: DEBUG: No entry for %s", __local_name, ip_addr);
         MMDB_free_entry_data_list(entry_data_list);
-        MMDB_close(&geoipdb);
         return(NULL);
     }
 
