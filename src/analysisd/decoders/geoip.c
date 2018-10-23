@@ -30,6 +30,9 @@ char *GetGeoInfobyIP(char *ip_addr)
     {
         return(NULL);
     }
+    if(!Config.geoipdb_file) {
+        return(NULL);
+    }
 
     int gai_error, mmdb_error;
     MMDB_lookup_result_s geo_result = MMDB_lookup_string(&geoipdb, ip_addr, &gai_error, &mmdb_error);

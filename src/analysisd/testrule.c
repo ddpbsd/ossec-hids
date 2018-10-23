@@ -141,12 +141,14 @@ int main(int argc, char **argv)
 
     /* Opening GeoIP DB */
     MMDB_s geoipdb;
+    if(Config.geoipdb_file) {
     int status = MMDB_open(Config.geoipdb_file, MMDB_MODE_MMAP, &geoipdb);
     if(status != MMDB_SUCCESS) {
         merror("%s: ERROR: Cannot open geoipdb: %s", __local_name, MMDB_strerror(status));
         if(status == MMDB_IO_ERROR) {
             merror("%s: ERROR: IO error: %s", __local_name, strerror(errno));
         }
+    }
     }
 #endif
 
