@@ -356,7 +356,7 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum, int sys
     }
 
     if(file_sums->check_md5 != 1 && file_sums->check_sha1 != 1 && file_sums->check_sha256 != 1 && file_sums->check_generic != 1) {
-        merror("XXX DOES NOT COMPUTER!");
+        merror("XXX DOES NOT COMPUTER!"); // TODO replace with real message or something respectable
     }
 
 #endif // LIBSODIUM_ENABLED
