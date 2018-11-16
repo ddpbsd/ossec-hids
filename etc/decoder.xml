@@ -54,6 +54,13 @@
   <prematch>^pam_unix|^\(pam_unix\)</prematch>
 </decoder>
 
+<decoder name="pam-ssh">
+  <parent>pam</parent>
+  <prematch>^pam_unix\(sshd:\w+\): </prematch>
+  <regex offset="after_prematch">^session \w+ for user (\S+) </regex>
+  <order>user</order>
+</decoder>
+
 <decoder name="pam-user">
   <parent>pam</parent>
   <prematch>^session \w+ </prematch>
