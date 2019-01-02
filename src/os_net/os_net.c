@@ -145,7 +145,7 @@ OSNetInfo *OS_Bindport(char *_port, unsigned int _proto, const char *_ip)
                           (char *)&flag, sizeof(flag)) < 0) {
                 verbose ("setsockopt error: SO_REUSEADDR %d: %s",
                          errno, strerror(errno));
-                if(ossock) {
+                if(ossock > 0) {
                     OS_CloseSocket(ossock);
                 }
                 continue;
