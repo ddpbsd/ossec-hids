@@ -407,7 +407,9 @@ int OS_Connect(char *_port, unsigned int protocol, const char *_ip)
         }
     }
     if (rp == NULL) {               /* No address succeeded */
-        OS_CloseSocket(ossock);
+        if(ossock > 0) {
+            OS_CloseSocket(ossock);
+        }
         if(result) {
             freeaddrinfo(result);
         }
@@ -621,6 +623,9 @@ char *OS_GetHost(const char *host, unsigned int attempts)
         }
 
         if ((ip = (char *) calloc(IPSIZE, sizeof(char))) == NULL) {
+            if(result) {
+                freeaddrinfo(result);
+            }
             return (NULL);
         }
 
