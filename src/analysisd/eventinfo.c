@@ -533,10 +533,17 @@ void Zero_Eventinfo(Eventinfo *lf)
     lf->filename = NULL;
     lf->perm_before = 0;
     lf->perm_after = 0;
+#ifdef LIBSODIUM_ENABLED
+    lf->hash1_before = NULL;
+    lf->hash1_after = NULL;
+    lf->hash2_before = NULL;
+    lf->hash2_after = NULL;
+#else   //LIBSODIUM_ENABLED
     lf->md5_before = NULL;
     lf->md5_after = NULL;
     lf->sha1_before = NULL;
     lf->sha1_after = NULL;
+#endif  //LIBSODIUM_ENABLED
     lf->size_before = NULL;
     lf->size_after = NULL;
     lf->owner_before = NULL;
@@ -621,6 +628,20 @@ void Free_Eventinfo(Eventinfo *lf)
     if (lf->filename) {
         free(lf->filename);
     }
+#ifdef LIBSODIUM_ENABLED
+    if (lf->hash1_before) {
+        free(lf->hash1_before);
+    }
+    if (lf->hash1_after) {
+        free(lf->hash1_after);
+    }
+    if (lf->hash2_before) {
+        free(lf->hash2_before);
+    }
+    if(lf->hash2_after) {
+        free(lf->hash2_after);
+    }
+#else   //LIBSODIUM_ENABLED
     if (lf->md5_before) {
         free(lf->md5_before);
     }
@@ -633,6 +654,7 @@ void Free_Eventinfo(Eventinfo *lf)
     if (lf->sha1_after) {
         free(lf->sha1_after);
     }
+#endif  //LIBSODIUM_ENABLED
     if (lf->size_before) {
         free(lf->size_before);
     }

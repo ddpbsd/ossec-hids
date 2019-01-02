@@ -913,14 +913,11 @@ char *syscheck_opts2str(char *buf, int buflen, int opts) {
         "sha1sum",
         "realtime",
         "report_changes",
-<<<<<<< HEAD
 #ifdef LIBSODIUM_ENABLED
         "sha256sum",
 	    "genericsum",
 #endif  //LIBSODIUM_ENABLED
-=======
         "no_recurse",
->>>>>>> 41310aa92bf649596dbe35c01479361a3c84c917
 	NULL
 	};
 

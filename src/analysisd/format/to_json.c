@@ -121,6 +121,106 @@ char *Eventinfo_to_jsonstr(const Eventinfo *lf)
 
         cJSON_AddStringToObject(file_diff, "path", lf->filename);
 
+#ifdef LIBSODIUM_ENABLED
+        if(lf->hash1_before && lf->hash1_after && strncmp(lf->hash1_before, lf->hash1_after, 129) != 0) {
+            /* Have to handle _before and _after separately since they could be different algs */
+            /* hash1_before */
+            char *os_alg = NULL;
+            if (strncmp(lf->hash1_before, "SHA256", 6) == 0) {
+                os_alg = "sha256";
+            } else if (strncmp(lf->hash1_before, "GENERIC", 7) == 0) {
+                os_alg = "blake2b";
+            } else if (strncmp(lf->hash1_before, "MD5", 3) == 0) {
+                os_alg = "md5";
+            } else if (strncmp(lf->hash1_before, "SHA1", 4) == 0) {
+                os_alg = "sha1";
+            } else {
+                merror("DOES NOT COMPUTER");
+            }
+            char *os_alg_status = NULL;
+            int os_s_return;
+             os_s_return = snprintf(os_alg_status, 32, "%s_before", os_alg);
+             if (os_s_return == -1) {
+                 merror("snprintf error");
+             } else if (os_s_return > 32) {
+                 merror("snprintf overshot");
+             }
+             cJSON_AddStringToObject(file_diff, os_alg_status, lf->hash1_before);
+
+            /* hash1_after */
+            if (strncmp(lf->hash1_after, "SHA256", 6) == 0) {
+                os_alg = "sha256";
+            } else if (strncmp(lf->hash1_after, "GENERIC", 7) == 0) {
+                os_alg = "blake2b";
+            } else if (strncmp(lf->hash1_after, "MD5", 3) == 0) {
+                os_alg = "md5";
+            } else if (strncmp(lf->hash1_after, "SHA1", 4) == 0) {
+                os_alg = "sha1";
+            } else {
+                merror("DOES NOT COMPUTER");
+            }
+            os_alg_status[0] = '\0';
+            os_s_return = 0;
+            os_s_return = snprintf(os_alg_status, 32, "%s_after", os_alg);
+            if (os_s_return == -1) {
+                merror("snprintf error");
+            } else if (os_s_return > 32) {
+                merror("snprintf overshot");
+            }
+            cJSON_AddStringToObject(file_diff, os_alg_status, lf->hash1_after);
+        }
+
+        if(lf->hash1_before && lf->hash2_after && strncmp(lf->hash2_before, lf->hash2_after, 129) != 0) {
+            /* Have to handle _before and _after separately since they could be different algs */
+            /* hash2_before */
+            char *os_alg = NULL;
+            if (strncmp(lf->hash2_before, "SHA256", 6) == 0) {
+                os_alg = "sha256";
+            } else if (strncmp(lf->hash2_before, "GENERIC", 7) == 0) {
+                os_alg = "blake2b";
+            } else if (strncmp(lf->hash2_before, "MD5", 3) == 0) {
+                os_alg = "md5";
+            } else if (strncmp(lf->hash2_before, "SHA1", 4) == 0) {
+                os_alg = "sha1";
+            } else {
+                merror("DOES NOT COMPUTER");
+            }
+            char *os_alg_status = NULL;
+            int os_s_return;
+             os_s_return = snprintf(os_alg_status, 32, "%s_before", os_alg);
+             if (os_s_return == -1) {
+                 merror("snprintf error");
+             } else if (os_s_return > 32) {
+                 merror("snprintf overshot");
+             }
+             cJSON_AddStringToObject(file_diff, os_alg_status, lf->hash1_before);
+
+            /* hash1_after */
+            if (strncmp(lf->hash2_after, "SHA256", 6) == 0) {
+                os_alg = "sha256";
+            } else if (strncmp(lf->hash2_after, "GENERIC", 7) == 0) {
+                os_alg = "blake2b";
+            } else if (strncmp(lf->hash2_after, "MD5", 3) == 0) {
+                os_alg = "md5";
+            } else if (strncmp(lf->hash2_after, "SHA1", 4) == 0) {
+                os_alg = "sha1";
+            } else {
+                merror("DOES NOT COMPUTER");
+            }
+            os_alg_status[0] = '\0';
+            os_s_return = 0;
+            os_s_return = snprintf(os_alg_status, 32, "%s_after", os_alg);
+            if (os_s_return == -1) {
+                merror("snprintf error");
+            } else if (os_s_return > 32) {
+                merror("snprintf overshot");
+            }
+            cJSON_AddStringToObject(file_diff, os_alg_status, lf->hash2_after);
+        }
+
+
+
+#else   //LIBSODIUM_ENABLED
         if (lf->md5_before && lf->md5_after && strcmp(lf->md5_before, lf->md5_after) != 0  ) {
             cJSON_AddStringToObject(file_diff, "md5_before", lf->md5_before);
             cJSON_AddStringToObject(file_diff, "md5_after", lf->md5_after);
@@ -129,6 +229,7 @@ char *Eventinfo_to_jsonstr(const Eventinfo *lf)
             cJSON_AddStringToObject(file_diff, "sha1_before", lf->sha1_before);
             cJSON_AddStringToObject(file_diff, "sha1_after", lf->sha1_after);
         }
+#endif  //LIBSODIUM_ENABLED
         if (lf->owner_before && lf->owner_after && (!strcmp(lf->owner_before, lf->owner_after)) != 0) {
             cJSON_AddStringToObject(file_diff, "owner_before", lf->owner_before);
             cJSON_AddStringToObject(file_diff, "owner_after", lf->owner_after);
@@ -228,19 +329,119 @@ char *Archiveinfo_to_jsonstr(const Eventinfo *lf)
    if (lf->filename) {
        cJSON_AddStringToObject(root, "filename", lf->filename);
 
+#ifdef LIBSODIUM_ENABLED
+        if(lf->hash1_before && lf->hash1_after && strncmp(lf->hash1_before, lf->hash1_after, 129) != 0) {
+            /* Have to handle _before and _after separately since they could be different algs */
+            /* hash1_before */
+            char *os_alg = NULL;
+            if (strncmp(lf->hash1_before, "SHA256", 6) == 0) {
+                os_alg = "sha256";
+            } else if (strncmp(lf->hash1_before, "GENERIC", 7) == 0) {
+                os_alg = "blake2b";
+            } else if (strncmp(lf->hash1_before, "MD5", 3) == 0) {
+                os_alg = "md5";
+            } else if (strncmp(lf->hash1_before, "SHA1", 4) == 0) {
+                os_alg = "sha1";
+            } else {
+                merror("DOES NOT COMPUTER");
+            }
+            char *os_alg_status = NULL;
+            int os_s_return;
+             os_s_return = snprintf(os_alg_status, 32, "%s_before", os_alg);
+             if (os_s_return == -1) {
+                 merror("snprintf error");
+             } else if (os_s_return > 32) {
+                 merror("snprintf overshot");
+             }
+             cJSON_AddStringToObject(root, os_alg_status, lf->hash1_before);
+
+            /* hash1_after */
+            if (strncmp(lf->hash1_after, "SHA256", 6) == 0) {
+                os_alg = "sha256";
+            } else if (strncmp(lf->hash1_after, "GENERIC", 7) == 0) {
+                os_alg = "blake2b";
+            } else if (strncmp(lf->hash1_after, "MD5", 3) == 0) {
+                os_alg = "md5";
+            } else if (strncmp(lf->hash1_after, "SHA1", 4) == 0) {
+                os_alg = "sha1";
+            } else {
+                merror("DOES NOT COMPUTER");
+            }
+            os_alg_status[0] = '\0';
+            os_s_return = 0;
+            os_s_return = snprintf(os_alg_status, 32, "%s_after", os_alg);
+            if (os_s_return == -1) {
+                merror("snprintf error");
+            } else if (os_s_return > 32) {
+                merror("snprintf overshot");
+            }
+            cJSON_AddStringToObject(root, os_alg_status, lf->hash1_after);
+        }
+
+        if(lf->hash1_before && lf->hash2_after && strncmp(lf->hash2_before, lf->hash2_after, 129) != 0) {
+            /* Have to handle _before and _after separately since they could be different algs */
+            /* hash2_before */
+            char *os_alg = NULL;
+            if (strncmp(lf->hash2_before, "SHA256", 6) == 0) {
+                os_alg = "sha256";
+            } else if (strncmp(lf->hash2_before, "GENERIC", 7) == 0) {
+                os_alg = "blake2b";
+            } else if (strncmp(lf->hash2_before, "MD5", 3) == 0) {
+                os_alg = "md5";
+            } else if (strncmp(lf->hash2_before, "SHA1", 4) == 0) {
+                os_alg = "sha1";
+            } else {
+                merror("DOES NOT COMPUTER");
+            }
+            char *os_alg_status = NULL;
+            int os_s_return;
+             os_s_return = snprintf(os_alg_status, 32, "%s_before", os_alg);
+             if (os_s_return == -1) {
+                 merror("snprintf error");
+             } else if (os_s_return > 32) {
+                 merror("snprintf overshot");
+             }
+             cJSON_AddStringToObject(root, os_alg_status, lf->hash1_before);
+
+            /* hash1_after */
+            if (strncmp(lf->hash2_after, "SHA256", 6) == 0) {
+                os_alg = "sha256";
+            } else if (strncmp(lf->hash2_after, "GENERIC", 7) == 0) {
+                os_alg = "blake2b";
+            } else if (strncmp(lf->hash2_after, "MD5", 3) == 0) {
+                os_alg = "md5";
+            } else if (strncmp(lf->hash2_after, "SHA1", 4) == 0) {
+                os_alg = "sha1";
+            } else {
+                merror("DOES NOT COMPUTER");
+            }
+            os_alg_status[0] = '\0';
+            os_s_return = 0;
+            os_s_return = snprintf(os_alg_status, 32, "%s_after", os_alg);
+            if (os_s_return == -1) {
+                merror("snprintf error");
+            } else if (os_s_return > 32) {
+                merror("snprintf overshot");
+            }
+            cJSON_AddStringToObject(root, os_alg_status, lf->hash2_after);
+        }
+
+
+#else   //LIBSODIUM_ENABLED
        if (lf->md5_before && lf->md5_after && strcmp(lf->md5_before, lf->md5_after) != 0) {
            cJSON_AddStringToObject(root, "md5_before", lf->md5_before);
            cJSON_AddStringToObject(root, "md5_after", lf->md5_after);
        }
-       if (lf->sha1_before && lf->sha1_after && !strcmp(lf->sha1_before, lf->sha1_after) != 0) {
+       if (lf->sha1_before && lf->sha1_after && strcmp(lf->sha1_before, lf->sha1_after) != 0) {
            cJSON_AddStringToObject(root, "sha1_before", lf->sha1_before);
            cJSON_AddStringToObject(root, "sha1_after", lf->sha1_after);
        }
-       if (lf->owner_before && lf->owner_after && !strcmp(lf->owner_before, lf->owner_after) != 0) {
+#endif  //LIBSODIUM_ENABLED
+       if (lf->owner_before && lf->owner_after && strcmp(lf->owner_before, lf->owner_after) != 0) {
            cJSON_AddStringToObject(root, "owner_before", lf->owner_before);
            cJSON_AddStringToObject(root, "owner_after", lf->owner_after);
        }
-       if (lf->gowner_before && lf->gowner_after && !strcmp(lf->gowner_before, lf->gowner_after) != 0) {
+       if (lf->gowner_before && lf->gowner_after && strcmp(lf->gowner_before, lf->gowner_after) != 0) {
            cJSON_AddStringToObject(root, "gowner_before", lf->gowner_before);
            cJSON_AddStringToObject(root, "gowner_after", lf->gowner_after);
        }

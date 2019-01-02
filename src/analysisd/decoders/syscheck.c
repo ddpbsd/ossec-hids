@@ -544,13 +544,15 @@ static int DB_Search(const char *f_name, const char *c_sum, Eventinfo *lf)
                 }
                 snprintf(sdb.md5, OS_FLSIZE * 2, "Old %s was: '%s'\n"
                         "New %s is: '%s'\n", hash_type, oldmd5, hash_type, newmd5);
+                os_strdup(oldmd5, lf->hash1_before);
+                os_strdup(newmd5, lf->hash1_after);
 #else   //LIBSODIUM_ENABLED
                 snprintf(sdb.md5, OS_FLSIZE, "Old md5sum was: '%s'\n"
                          "New md5sum is: '%s'\n",
                          oldmd5, newmd5);
-#endif  //LIBSODIUM_ENABLED
                 os_strdup(oldmd5, lf->md5_before);
                 os_strdup(newmd5, lf->md5_after);
+#endif  //LIBSODIUM_ENABLED
             }
 
             /* SHA-1 message */
@@ -568,13 +570,15 @@ static int DB_Search(const char *f_name, const char *c_sum, Eventinfo *lf)
                 }
                 snprintf(sdb.sha1, OS_FLSIZE * 2, "Old %s was: '%s'\n"
                          "New %s is : '%s'\n", hash_type, oldsha1, hash_type, newsha1);
+                os_strdup(oldsha1, lf->hash2_before);
+                os_strdup(newsha1, lf->hash2_after);
 #else   //LIBSODIUM_ENABLED
                 snprintf(sdb.sha1, OS_FLSIZE, "Old sha1sum was: '%s'\n"
                          "New sha1sum is : '%s'\n",
                          oldsha1, newsha1);
-#endif  //LIBSODIUM_ENABLED
                 os_strdup(oldsha1, lf->sha1_before);
                 os_strdup(newsha1, lf->sha1_after);
+#endif  //LIBSODIUM_ENABLED
             }
             os_strdup(f_name, lf->filename);
 

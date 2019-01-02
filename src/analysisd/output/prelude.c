@@ -498,16 +498,26 @@ void OS_PreludeLog(const Eventinfo *lf)
         FileAccess_PreludeLog(idmef,
                               "original",
                               lf->filename,
+#ifdef LIBSOIDUM_ENABLED
+                              lf->hash1_before,
+                              lf->hash2_before,
+#else   //LIBSODIUM_ENABLED
                               lf->md5_before,
                               lf->sha1_before,
+#endif  //LIBSODIUM_ENABLED
                               lf->owner_before,
                               lf->gowner_before,
                               lf->perm_before);
         FileAccess_PreludeLog(idmef,
                               "current",
                               lf->filename,
+#ifdef LIBSODIUM_ENABLED
+                              lf->hash1_after,
+                              lf->hash2_after,
+#else   //LIBSODIUM_ENABLED
                               lf->md5_after,
                               lf->sha1_after,
+#endif  //LIBSODIUM_ENABLED
                               lf->owner_after,
                               lf->gowner_after,
                               lf->perm_after);

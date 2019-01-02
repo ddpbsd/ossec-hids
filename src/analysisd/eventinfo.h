@@ -66,10 +66,18 @@ typedef struct _Eventinfo {
     char *filename;
     int perm_before;
     int perm_after;
+
+#ifdef LIBSODIUM_ENABLED
+    char *hash1_before;
+    char *hash1_after;
+    char *hash2_before;
+    char *hash2_after;
+#else   //LIBSODIUM_ENABLED
     char *md5_before;
     char *md5_after;
     char *sha1_before;
     char *sha1_after;
+#endif  //LIBSODIUM_ENABLED
     char *size_before;
     char *size_after;
     char *owner_before;
