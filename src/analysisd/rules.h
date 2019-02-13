@@ -1,5 +1,5 @@
-/* Copyright (C) 2009 Trend Micro Inc.
- * All right reserved.
+/* Copyright (C) 2019 Trend Micro Inc. 
+ * All rights reserved.
  *
  * This program is a free software; you can redistribute it
  * and/or modify it under the terms of the GNU General Public
@@ -71,6 +71,11 @@ typedef struct _RuleInfoDetail {
     char *data;
     struct _RuleInfoDetail *next;
 } RuleInfoDetail;
+
+typedef struct _FieldInfo {
+    char *name;
+    OSRegex *regex;
+} FieldInfo;
 
 typedef struct _RuleInfo {
     int sigid;  /* id attribute -- required*/
@@ -156,6 +161,8 @@ typedef struct _RuleInfo {
     OSPcre2 *hostname_pcre2;
     OSPcre2 *program_name_pcre2;
     OSPcre2 *extra_data_pcre2;
+    FieldInfo **fields;
+
     char *action;
 
     char *comment; /* description in the xml */
