@@ -649,6 +649,27 @@ int ReadDecodeXML(const char *file)
         /* If pi->regex is not set, fts must not be set too */
         if ((!(regex || pcre2) && (pi->fts || pi->order)) || ((regex || pcre2) && !pi->order)) {
             merror(DEC_REGEX_ERROR, ARGV0, pi->name);
+            if (prematch_pcre2) {
+                free(prematch_pcre2);
+            }
+            if (pi) {
+                free(pi);
+            }
+            if (regex) {
+                free(regex);
+            }
+            if (pcre2) {
+                free(pcre2);
+            }
+            if (p_name_pcre2) {
+                free(p_name_pcre2);
+            }
+            if (prematch) {
+                free(prematch);
+            }
+            if (p_name) {
+                free(p_name);
+            }
             return (0);
         }
 
