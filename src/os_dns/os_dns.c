@@ -75,6 +75,7 @@ void osdns_accept(int fd, short ev, void *arg) {
 
 
         datalen = imsg.hdr.len - IMSG_HEADER_SIZE;
+        merror("%s [dns]: DEBUG: datalen: %lu, dnsr: %lu", dname, datalen, sizeof(dnsr));
 
         switch(imsg.hdr.type) {
             case DNS_REQ:
