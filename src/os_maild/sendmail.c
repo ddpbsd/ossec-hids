@@ -57,7 +57,7 @@ void os_sendmail_cb(int fd, short ev, void *arg) {
     merror("ossec-maild: DEBUG: os_sendmail_cb");
 
     /* Have to get the *arg stuff */
-    ssize_t n;
+    ssize_t n, datalen;
     struct imsg imsg;
     struct imsgbuf *ibuf = (struct imsgbuf *)arg;
 
@@ -80,6 +80,9 @@ void os_sendmail_cb(int fd, short ev, void *arg) {
     if (n == 0) {
         merror("%s: WARN2: n == 0", ARGV0);
     }
+
+    datalen = imsg.hdr.len - IMSG_HEADER_SIZE;
+    merror("%s [dns]: DEBUG: datalen: %lu (%d - %d)", dname, datalen, imsg.hdr.len, IMSG_HEADER_SIZE);
 
     switch(imsg.hdr.type) {
         case DNS_RESP:
