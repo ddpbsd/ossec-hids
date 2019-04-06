@@ -90,14 +90,13 @@ void os_sendmail_cb(int fd, short ev, void *arg) {
             merror("%s: DEBUG: os_sock: %d", ARGV0, os_sock);
             break;
         case DNS_FAIL:
+            // XXX Try to log more info
             merror("%s: ERROR: DNS failure for smtpserver", ARGV0);
-            return;
+            break;
         default:
             merror("%s: ERROR Wrong imsg type.", ARGV0);
             break;
     }
-
-
 
     return;
 }
