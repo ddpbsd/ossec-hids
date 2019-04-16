@@ -80,7 +80,6 @@ void osdns_accept(int fd, short ev, void *arg) {
 
 
         datalen = imsg.hdr.len - IMSG_HEADER_SIZE;
-        merror("%s [dns]: DEBUG: datalen: %lu, dnsr: %lu (%d - %d)", dname, datalen, sizeof(&dnsr), imsg.hdr.len, IMSG_HEADER_SIZE);
 
         switch(imsg.hdr.type) {
             /*
