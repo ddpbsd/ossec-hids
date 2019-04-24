@@ -16,12 +16,14 @@
 /* Prototypes */
 static void helpmsg(void) __attribute__((noreturn));
 
+int os_debug = 0;
 
 static void helpmsg()
 {
     printf("\nOSSEC HIDS %s: Manages the integrity checking database.\n",
            ARGV0);
     printf("Available options:\n");
+    printf("\t-D          Debug++\n");
     printf("\t-h          This help message.\n");
     printf("\t-l          List available (active or inactive) agents.\n");
     printf("\t-lc         List only active agents.\n");
@@ -179,9 +181,9 @@ int main(int argc, char **argv)
             cJSON_AddStringToObject(first, "ip", "127.0.0.1");
             cJSON_AddStringToObject(first, "status", "Active");
             cJSON_AddItemToArray(json_agents, first);
-        } else if (csv_output)
+        } else if (csv_output) {
             printf("000,%s (server),127.0.0.1,Active/Local,\n", shost);
-        else {
+        } else {
             printf("\nOSSEC HIDS %s. List of available agents:", ARGV0);
             printf("\n   ID: 000, Name: %s (server), IP: 127.0.0.1, "
                    "Active/Local\n", shost);
@@ -192,8 +194,9 @@ int main(int argc, char **argv)
         if (json_output) {
             cJSON_AddItemToObject(json_root, "response", json_agents);
             printf("%s", cJSON_PrintUnformatted(json_root));
-        } else
+        } else {
             printf("\n");
+        }
 
         exit(0);
     }
@@ -202,6 +205,9 @@ int main(int argc, char **argv)
     if (update_syscheck) {
         /* Clean all agents (and server) db */
         if (strcmp(agent_id, "all") == 0) {
+            if (os_debug > 0) {
+                printf("%s: cleaning all syscheck files\n", ARGV0);
+            }
             DIR *sys_dir;
             struct dirent *entry;
 
@@ -214,8 +220,9 @@ int main(int argc, char **argv)
                     cJSON_AddStringToObject(json_root, "description", buffer);
                     printf("%s", cJSON_PrintUnformatted(json_root));
                     exit(1);
-                } else
+                } else {
                     ErrorExit("%s: Unable to open: '%s'", ARGV0, SYSCHECK_DIR);
+                }
             }
 
             while ((entry = readdir(sys_dir)) != NULL) {
@@ -233,10 +240,18 @@ int main(int argc, char **argv)
 
                 fp = fopen(full_path, "w");
                 if (fp) {
+                    if (os_debug > 0) {
+                        printf("%s: clearing %s\n", ARGV0, full_path);
+                    }
                     fclose(fp);
                 }
                 if (entry->d_name[0] == '.') {
-                    unlink(full_path);
+                    if (os_debug > 0) {
+                        printf("%s: unlinking %s\n", ARGV0, full_path);
+                    }
+                    if ((unlink(full_path)) == -1) {
+                        printf("%s: Could not delete %s: %s\n", ARGV0, full_path, strerror(errno));
+                    }
                 }
             }
 
@@ -246,8 +261,9 @@ int main(int argc, char **argv)
                 cJSON_AddNumberToObject(json_root, "error", 0);
                 cJSON_AddStringToObject(json_root, "response", "Integrity check database updated");
                 printf("%s", cJSON_PrintUnformatted(json_root));
-            } else
+            } else {
                 printf("\n** Integrity check database updated.\n\n");
+            }
 
             exit(0);
         }
@@ -262,7 +278,9 @@ int main(int argc, char **argv)
             if (fp) {
                 fclose(fp);
             }
-            unlink(final_dir);
+            if((unlink(final_dir)) == -1) {
+                printf("%s: Could not delete %s: %s\n", ARGV0, final_dir, strerror(errno));
+            }
 
 
             /* Deleting cpt file */
@@ -272,14 +290,17 @@ int main(int argc, char **argv)
             if (fp) {
                 fclose(fp);
             }
-            unlink(final_dir);
+            if ((unlink(final_dir)) == -1) {
+                printf("%s: Could not unlink %s: %s\n", ARGV0, final_dir, strerror(errno));
+            }
 
             if (json_output) {
                 cJSON_AddNumberToObject(json_root, "error", 0);
                 cJSON_AddStringToObject(json_root, "response", "Integrity check database updated");
                 printf("%s", cJSON_PrintUnformatted(json_root));
-            } else
+            } else {
                 printf("\n** Integrity check database updated.\n\n");
+            }
 
             exit(0);
         }
@@ -314,8 +335,9 @@ int main(int argc, char **argv)
                 cJSON_AddNumberToObject(json_root, "error", 0);
                 cJSON_AddStringToObject(json_root, "response", "Integrity check database updated");
                 printf("%s", cJSON_PrintUnformatted(json_root));
-            } else
+            } else {
                 printf("\n** Integrity check database updated.\n\n");
+            }
 
             exit(0);
         }

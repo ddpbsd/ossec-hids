@@ -756,7 +756,9 @@ int delete_syscheck(const char *sk_name, const char *sk_ip, int full_delete)
     }
 
     if (full_delete) {
-        unlink(tmp_file);
+        if ((unlink(tmp_file)) == -1) {
+            merror("Cannot unlink %s: %s", tmp_file, strerror(errno));
+        }
     }
 
     /* Delete cpt files */
@@ -769,7 +771,9 @@ int delete_syscheck(const char *sk_name, const char *sk_ip, int full_delete)
     if (fp) {
         fclose(fp);
     }
-    unlink(tmp_file);
+    if ((unlink(tmp_file)) == -1) {
+        merror("Cannot unlink %s: %s", tmp_file, strerror(errno));
+    }
 
     /* Delete registry entries */
     snprintf(tmp_file, 512, "%s/(%s) %s->syscheck-registry",
@@ -782,7 +786,9 @@ int delete_syscheck(const char *sk_name, const char *sk_ip, int full_delete)
         fclose(fp);
     }
     if (full_delete) {
-        unlink(tmp_file);
+        if ((unlink(tmp_file)) == -1) {
+            merror("Cannot unlink %s: %s", tmp_file, strerror(errno));
+        }
     }
 
     /* Delete cpt files */
@@ -795,7 +801,9 @@ int delete_syscheck(const char *sk_name, const char *sk_ip, int full_delete)
     if (fp) {
         fclose(fp);
     }
-    unlink(tmp_file);
+    if ((unlink(tmp_file)) == -1) {
+        merror("Cannot unlink %s: %s", tmp_file, strerror(errno));
+    }
 
     return (1);
 }
