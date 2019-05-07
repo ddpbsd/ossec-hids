@@ -7,18 +7,18 @@ notifications:
     secure: Cz1InEL5G+z2huuzilXe7BqfxlEjN4io5ylJa5jgPvGMlB5sIQZTQQ7PDrzcK0iwn+5xgDkXKwbNPV2k+NHNTtNFiuBrcnJbyeA8PjghtAw4hg/Vpl5+5ovySZT9pGSV7ySsA8nGD73hlcQFgWnYDhsugQ6UZyRXAN8vLLCLjPg=
 
 env:
-- DB=mysql OSSEC_TYPE=server GEOIP=yes
-- DB=mysql OSSEC_TYPE=server GEOIP=no
-- DB=pgsql OSSEC_TYPE=server GEOIP=yes
-- DB=pgsql OSSEC_TYPE=server GEOIP=no
-- DB=none OSSEC_TYPE=server GEOIP=yes
-- DB=none OSSEC_TYPE=server GEOIP=no
-- DB=none OSSEC_TYPE=server PRELUDE=yes ZEROMQ=yes
-- DB=none OSSEC_TYPE=server ZLIB_SYSTEM=yes LUA_ENABLE=no
-- DB=none OSSEC_TYPE=local GEOIP=no
-- DB=none OSSEC_TYPE=hybrid GEOIP=no
-- DB=none OSSEC_TYPE=agent GEOIP=no
-- DB=none OSSEC_TYPE=winagent GEOIP=no
+- OSSEC_TYPE=server GEOIP=yes
+- OSSEC_TYPE=server GEOIP=no
+- OSSEC_TYPE=server GEOIP=yes
+- OSSEC_TYPE=server GEOIP=no
+- OSSEC_TYPE=server GEOIP=yes
+- OSSEC_TYPE=server GEOIP=no
+- OSSEC_TYPE=server PRELUDE=yes ZEROMQ=yes
+- OSSEC_TYPE=server ZLIB_SYSTEM=yes LUA_ENABLE=no
+- OSSEC_TYPE=local GEOIP=no
+- OSSEC_TYPE=hybrid GEOIP=no
+- OSSEC_TYPE=agent GEOIP=no
+- OSSEC_TYPE=winagent GEOIP=no
 - OSSEC_TYPE=test
 - OSSEC_TYPE=server RULES=test
 
@@ -34,7 +34,7 @@ matrix:
     - compiler: clang
       env: DB=none OSSEC_TYPE=winagent GEOIP=no
     - compiler: clang
-      env: OSSEC_TYPE=server RULES=test
+      env: DB=none OSSEC_TYPE=server RULES=test
 
 
 
@@ -56,7 +56,6 @@ before_script:
 
 script:
 - COMMAND="V=1 TARGET=${OSSEC_TYPE}"
-  && if ! [[ "${DB}" = "none" ]]; then COMMAND="${COMMAND} DATABASE=${DB}"; fi
   && if [[ "${GEOIP}" = "yes" ]]; then COMMAND="${COMMAND} USE_GEOIP=1"; fi
   && if [[ "${PRELUDE}" = "yes" ]]; then COMMAND="${COMMAND} USE_PRELUDE=1"; fi
   && if [[ "${ZEROMQ}" = "yes" ]]; then COMMAND="${COMMAND} USE_ZEROMQ=1"; fi
