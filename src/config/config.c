@@ -63,9 +63,7 @@ static int read_main_elements(const OS_XML *xml, int modules,
                 goto fail;
             }
         } else if (strcmp(node[i]->element, osdbd) == 0) {
-            if ((modules & CDBD) && (Read_DB(chld_node, d1, d2) < 0)) {
-                goto fail;
-            }
+            /* Empty, left here to not break anything */
         } else if (strcmp(node[i]->element, oscsyslogd) == 0) {
             if ((modules & CSYSLOGD) && (Read_CSyslog(chld_node, d1, d2) < 0)) {
                 goto fail;
