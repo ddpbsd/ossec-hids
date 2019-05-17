@@ -261,6 +261,11 @@ static int DB_Search(const char *f_name, const char *c_sum, Eventinfo *lf)
 
     FILE *fp;
 
+    /* Expose filename variable for active response */
+    os_strdup(f_name, lf->filename);
+
+
+
     /* Get db pointer */
     fp = DB_File(lf->location, &agent_id);
     if (!fp) {
@@ -329,6 +334,9 @@ static int DB_Search(const char *f_name, const char *c_sum, Eventinfo *lf)
             lf->data = NULL;
             return (0);
         }
+
+
+
 
         /* If we reached here, the checksum of the file has changed */
         if (saved_sum[-3] == '!') {
@@ -580,7 +588,6 @@ static int DB_Search(const char *f_name, const char *c_sum, Eventinfo *lf)
                 os_strdup(oldsha1, lf->sha1_before);
                 os_strdup(newsha1, lf->sha1_after);
             }
-            os_strdup(f_name, lf->filename);
 
             /* Provide information about the file */
             snprintf(sdb.comment, OS_MAXSTR, "Integrity checksum changed for: "
@@ -632,6 +639,7 @@ static int DB_Search(const char *f_name, const char *c_sum, Eventinfo *lf)
         snprintf(sdb.comment, OS_MAXSTR,
                  "New file '%.756s' "
                  "added to the file system.", f_name);
+
 
         /* Create a new log message */
         free(lf->full_log);
