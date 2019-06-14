@@ -49,7 +49,7 @@
 #define MAIL_DEBUG_FLAG     0
 #define MAIL_DEBUG(x,y,z) if(MAIL_DEBUG_FLAG) merror(x,y,z)
 
-int os_sock;
+int os_sock = -1;
 
 void os_sendmail_cb(int fd, short ev, void *arg) {
     if (fd) { }
@@ -102,6 +102,11 @@ void os_sendmail_cb(int fd, short ev, void *arg) {
 
 int OS_Sendmail(MailConfig *mail, struct tm *p)
 {
+
+#if __OpenBSD__
+    setproctitle("OS_Sendmail");
+#endif
+
     FILE *sendmail = NULL;
     os_sock = -1;
     unsigned int i = 0;
@@ -156,6 +161,11 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         if (n == 0) {
             debug2("%s: INFO: (write) n == 0", ARGV0);
         }
+
+        struct timeval ten_sec;
+        ten_sec.tv_sec = 10;
+        ten_sec.tv_usec = 0;
+        event_base_loopexit(eb, &ten_sec);
 
         event_dispatch();
     }
