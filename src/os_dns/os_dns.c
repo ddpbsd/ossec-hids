@@ -38,6 +38,28 @@
 
 char *dname = NULL;
 
+/* Use imsg to report errors to the OS_Sendmail() process.
+ * returns 0 on success, -1 on error.
+ * Errors here are currently fatal
+ * dnserr is just -1 at the moment, but could represent better error info
+ */
+int osdns_error(int dnserr, struct imsgbuf *ibuf) {
+
+    int n = -1;
+    imsg_compose(ibuf, -1, 0, 0, -1, &dnserr, sizeof(&dnserr));
+    if ((n = msgbuf_write(&ibuf->w) == -1) &&  errno != EAGAIN) {
+        merror("%s: ERROR: osdns_error() failed: %s", dname, strerror(errno));
+        return(-1);
+    }
+    return(0);
+}
+
+
+/*
+ * libevent callback that accepts the imsg and processes it.
+ * receives the imsgbuf in *arg
+ * should call osdns_error() on error
+ */
 void osdns_accept(int fd, short ev, void *arg) {
 
     /* sssssssh */
@@ -89,8 +111,9 @@ void osdns_accept(int fd, short ev, void *arg) {
             case DNS_REQ:
                 if (datalen != sizeof(&dnsr)) {
                     merror("%s [dns]: ERROR: DNS_REQ wrong length (%lu)", dname, datalen);
-                    struct os_dns_error os_dns_err;
+                    /*struct os_dns_error os_dns_err;*/
                     //os_dns_err.msg = "wrong len";
+                    /*
                     imsg_compose(ibuf, DNS_FAIL, 0, 0, -1, &os_dns_err, sizeof(&os_dns_err));
                     if ((n = msgbuf_write(&ibuf->w) == -1) && errno != EAGAIN) {
                         merror("%s [dns]: ERROR: msgbuf_write() failed (DNS_FAIL size): %s", dname, strerror(errno));
@@ -103,6 +126,10 @@ void osdns_accept(int fd, short ev, void *arg) {
                     if (n == EAGAIN) {
                         debug2("%s [dns]: DEBUG EAGAIN size", dname);
                         return; //XXX
+                    }
+                    */
+                    if ((osdns_error(-1, ibuf)) < 0) {
+                        ErrorExit("%s: ERROR: osdns_error() failed.", dname);
                     }
                 }
                 memcpy(&dnsr, imsg.data, sizeof(dnsr));
