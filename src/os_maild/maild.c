@@ -406,7 +406,7 @@ snd_check_hour:
         while (childcount) {
             int wp;
             int p_status;
-            wp = waitpid((pid_t) - 1, &p_status, WNOHANG);
+            wp = waitpid((pid_t) -1, &p_status, WNOHANG);
             if (wp < 0) {
                 merror(WAITPID_ERROR, ARGV0, errno, strerror(errno));
                 n_errs++;
