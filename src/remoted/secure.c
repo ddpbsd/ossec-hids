@@ -184,23 +184,30 @@ void HandleSecure()
                     continue;
                 }
 
-                /* Generate srcmsg */
-                snprintf(srcmsg, OS_FLSIZE, "(%s) %s",
-                         keys.keyentries[agentid]->name,
-                         keys.keyentries[agentid]->ip->ip);
+                /* Check for --MARK--:, the keep alive messages */
+                if ((strncmp(tmp_msg, "--MARK--:", 9)) == 0) {
+                    /* Do something? */
+                    debug2("%s: DEBUG: --MARK--", ARGV0);
+                } else {
 
-               /*
-                * If we can't send the message, try to connect to the
-                * socket again. If it fails exit.
-                */
-                if (SendMSG(logr.m_queue, tmp_msg, srcmsg,
-                            SECURE_MQ) < 0) {
-                    merror(QUEUE_ERROR, ARGV0, DEFAULTQUEUE, strerror(errno));
+                    /* Generate srcmsg */
+                    snprintf(srcmsg, OS_FLSIZE, "(%s) %s",
+                            keys.keyentries[agentid]->name,
+                            keys.keyentries[agentid]->ip->ip);
 
-                    if ((logr.m_queue = StartMQ(DEFAULTQUEUE, WRITE)) < 0) {
-                        ErrorExit(QUEUE_FATAL, ARGV0, DEFAULTQUEUE);
+                    /*
+                     * If we can't send the message, try to connect to the
+                     * socket again. If it fails exit.
+                     */
+                    if (SendMSG(logr.m_queue, tmp_msg, srcmsg,
+                                SECURE_MQ) < 0) {
+                        merror(QUEUE_ERROR, ARGV0, DEFAULTQUEUE, strerror(errno));
+
+                        if ((logr.m_queue = StartMQ(DEFAULTQUEUE, WRITE)) < 0) {
+                            ErrorExit(QUEUE_FATAL, ARGV0, DEFAULTQUEUE);
+                        }
                     }
-                }
+                } /* if not --MARK--: */
             } /* if socket active */
         } /* for() loop on sockets */
     } /* while(1) loop for messages */
