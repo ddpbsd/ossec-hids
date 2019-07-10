@@ -2032,6 +2032,27 @@ Jan  8 19:32:41 tp.lan dropbear[15165]: Pubkey auth succeeded for 'root' with ke
   <order>extra_data</order>
 </decoder>
 
+<!-- SYSMON -->
+<decoder name="windows1">
+  <type>windows</type>
+  <parent>windows</parent>
+  <pcre2>ProcessId: (\d+)\s+Image:\s*(.*)  FileVersion:.*OriginalFileName: (.*)  CommandLine: (.*?)  .*User: (.*?)  </pcre2>
+  <order>process_id,image,orig_filename,cmd,user</order>
+</decoder>
+
+<decoder name="windows1">
+  <type>windows</type>
+  <parent>windows</parent>
+  <pcre2>LogonGuid: (\S+)  LogonId: (\S+)  .*IntegrityLevel: (\S+)  Hashes: MD5=(\S+),SHA256=(\S+)  </pcre2>
+  <order>logon_guid,logon_id,integrity_lvl,md5,sha256</order>
+</decoder>
+
+<decoder name="windows1">
+  <type>windows</type>
+  <parent>windows</parent>
+  <pcre2>ParentProcessGuid: (\S+)  ParentProcessId: (\d+)  ParentImage: (.*?)  ParentCommandLine: (.*)</pcre2>
+  <order>parent_proc_guid,parent_pid,parent_image,parent_cmd</order>
+</decoder>
 
 <!-- Windows decoder -NTsyslog format
   - Will extract extra_data (as win source),action (as win category), id,
