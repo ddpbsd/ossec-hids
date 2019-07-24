@@ -45,7 +45,7 @@ before_script:
   && ./configure && make all -j && sudo make install
   ); fi
 - if [[ "${USE_SQLITE}" == "yes" ]]; then ( sudo apt-get install libsqlite3-dev sqlite3 ); fi
-- if [[ "${USE_LIBSODIUM}" == "yes" ]]; then ( sudo apt-get update && sudo apt-get install libsodium-dev libsodium13 ); fi
+- if [[ "${USE_LIBSODIUM}" == "yes" ]]; then ( sudo sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe" && sudo apt-get update && sudo apt-get install libsodium-dev libsodium13 ); fi
 - if [[ "${OSSEC_TYPE}" == "test" ]]; then ( sudo apt-get update && sudo apt-get install check valgrind ); fi
 - if [[ "${OSSEC_TYPE}" == "server" ]]; then ( git clone http://github.com/ddpbsd/ossec-scan.git ossec-scan ); fi
 
