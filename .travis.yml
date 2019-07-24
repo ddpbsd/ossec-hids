@@ -1,10 +1,8 @@
 language: c
 
 notifications:
-  irc:
-    - "chat.freenode.net#ossec-dev"
-  slack:
-    secure: Cz1InEL5G+z2huuzilXe7BqfxlEjN4io5ylJa5jgPvGMlB5sIQZTQQ7PDrzcK0iwn+5xgDkXKwbNPV2k+NHNTtNFiuBrcnJbyeA8PjghtAw4hg/Vpl5+5ovySZT9pGSV7ySsA8nGD73hlcQFgWnYDhsugQ6UZyRXAN8vLLCLjPg=
+  email:
+    - ddpbsd@gmail.com
 
 env:
 - DB=mysql OSSEC_TYPE=server GEOIP=yes
@@ -22,6 +20,7 @@ env:
 - DB=none OSSEC_TYPE=winagent GEOIP=no
 - OSSEC_TYPE=test
 - OSSEC_TYPE=server RULES=test
+- OSSEC_TYPE=scan
 
 
 compiler:
@@ -57,6 +56,7 @@ before_script:
   && sudo apt-get install libsodium-dev libsodium13
   ); fi
 - if [[ "${OSSEC_TYPE}" == "test" ]]; then ( sudo apt-get update && sudo apt-get install check valgrind ); fi
+#- if [[ "${OSSEC_TYPE}" == "scan" ]]; then (  ); fi
 
 
 script:
@@ -74,17 +74,9 @@ script:
 
 - if [[ "${OSSEC_TYPE}" == "test" ]]; then ( cd src/ && make --warn-undefined-variables test_valgrind ) fi
 - if [[ "${RULES}" == "test" ]]; then ( cd src/ && sudo make V=1 TARGET=server test-rules ) fi
+- if [[ "${OSSEC_TYPE}" == "scan" ]]; then ( git clone https://github.com/ddpbsd/ossec-scan.git ossec-scan && cd src/ && scan-build -o ../ossec-scan/scans/testing/server gmake TARGET=server USE_LIBSODIUM=y ) fi 
 
 
-deploy:
-  provider: releases
-  api_key:
-    secure: "DiVPTCt1C8XCmFlzcpmFkqfRmxz85/RCE2euvU/c1EiABjfO20aZARCC9zsepAwAGWWsq3uGRLp0aVuJuh4LvTdGxIJDOqYR8z1pByfY4epgE7zmRCIWjx+nAwBpLlfYalMWFpt7vmPp9mKycFkUR2NFoiEfOgoO9wGN0ZgmwSM="
-  file: src/win-pkg/ossec-win32-agent.exe
-  skip_cleanup: true
-  on:
-    tags: true
-    all_branches: true
-    repo: ossec/ossec-hids
-    condition: $OSSEC_TYPE = winagent
+#after_success:
+#  - if [[ "$TRAVIS_BRANCH" == "master" ]]; then (cd _build/html/ && git config user.email travis-ci@travis && git config user.name  "Travis-CI" && git add . && git commit -m "deployed to github pages" && git push --force --quiet https://$GH_TOKEN@github.com/ossec/ossec.github.io.git); fi
 
