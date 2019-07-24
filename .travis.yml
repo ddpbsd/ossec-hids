@@ -28,8 +28,6 @@ matrix:
     - compiler: clang
       env: OSSEC_TYPE=server RULES=test
     - compiler: gcc
-      env: OSSEC_TYPE=scan
-    - compiler: gcc
       env: SCAN=yes
 
 
@@ -47,9 +45,7 @@ before_script:
   && ./configure && make all -j && sudo make install
   ); fi
 - if [[ "${USE_SQLITE}" == "yes" ]]; then ( sudo apt-get install libsqlite3-dev sqlite3 ); fi
-- if [[ "${USE_LIBSODIUM}" == "yes" ]]; then ( sudo add-apt-repository -y ppa:chris-lea/libsodium && sudo apt-get update
-  && sudo apt-get install libsodium-dev libsodium13
-  ); fi
+- if [[ "${USE_LIBSODIUM}" == "yes" ]]; then ( sudo apt-get update && sudo apt-get install libsodium-dev libsodium13 ); fi
 - if [[ "${OSSEC_TYPE}" == "test" ]]; then ( sudo apt-get update && sudo apt-get install check valgrind ); fi
 - if [[ "${OSSEC_TYPE}" == "server" ]]; then ( git clone http://github.com/ddpbsd/ossec-scan.git ossec-scan ); fi
 
