@@ -73,9 +73,9 @@ script:
 
 - if [[ "${OSSEC_TYPE}" == "test" ]]; then ( cd src/ && make --warn-undefined-variables test_valgrind ) fi
 - if [[ "${RULES}" == "test" ]]; then ( cd src/ && sudo make V=1 TARGET=server test-rules ) fi
-- if [[ "${SCAN}" == "scan" ]]; then ( git clone https://github.com/ddpbsd/ossec-scan.git ossec-scan && cd src/ && scan-build -o ../ossec-scan/scans/testing/${OSSEC_TYPE} make TARGET=${OSSEC_TYPE USE_LIBSODIUM=y ) fi 
+- if [[ "${SCAN}" == "scan" ]]; then ( git clone https://github.com/ddpbsd/ossec-scan.git ossec-scan && cd src/ && scan-build -o ../ossec-scan/scans/testing/${OSSEC_TYPE} make TARGET=${OSSEC_TYPE} USE_LIBSODIUM=y ) fi 
 
 
-# after_success:
-#   - if [[ "$TRAVIS_BRANCH" == "master" ]]; then (cd _build/html/ && git config user.email travis-ci@travis && git config user.name  "Travis-CI" && git add . && git commit -m "deployed to github pages" && git push --force --quiet https://$GH_TOKEN@github.com/ossec/ossec.github.io.git); fi
+after_success:
+  - if [[ "$TRAVIS_BRANCH" == "master" ]]; then (cd _build/html/ && git config user.email travis-ci@travis && git config user.name  "Travis-CI" && git add . && git commit -m "deployed to github pages" && git push --force --quiet https://$GH_TOKEN@github.com/ossec/ossec.github.io.git); fi
 
