@@ -5,7 +5,7 @@ notifications:
     - ddpbsd@gmail.com
 
 env:
-- OSSEC_TYPE=server PRELUDE=no ZEROMQ=yes
+- OSSEC_TYPE=server PRELUDE=no ZEROMQ=no
 - OSSEC_TYPE=server ZLIB_SYSTEM=yes LUA_ENABLE=no
 - OSSEC_TYPE=server USE_SQLITE=yes USE_LIBSODIUM=yes
 - OSSEC_TYPE=local GEOIP=no
@@ -51,7 +51,7 @@ before_script:
   && sudo apt-get install libsodium-dev libsodium13
   ); fi
 - if [[ "${OSSEC_TYPE}" == "test" ]]; then ( sudo apt-get update && sudo apt-get install check valgrind ); fi
-- if [[ "${OSSEC_TYPE}" == "scan" ]]; then ( git clone http://github.com/ddpbsd/ossec-scan.git ossec-scan ); fi
+- if [[ "${OSSEC_TYPE}" == "server" ]]; then ( git clone http://github.com/ddpbsd/ossec-scan.git ossec-scan ); fi
 
 
 script:
@@ -68,7 +68,7 @@ script:
 
 - if [[ "${OSSEC_TYPE}" == "test" ]]; then ( cd src/ && make --warn-undefined-variables test_valgrind ) fi
 - if [[ "${RULES}" == "test" ]]; then ( cd src/ && sudo make V=1 TARGET=server test-rules ) fi
-- if [[ "${SCAN}" == "scan" && "${OSSEC_TYPE} == "server" ]]; then ( git clone https://github.com/ddpbsd/ossec-scan.git ossec-scan && cd src/ && scan-build -o ../ossec-scan/scans/testing/${OSSEC_TYPE} ${COMMAND} USE_LIBSODIUM=y ) fi 
+- if [[ "${SCAN}" == "yes" && "${OSSEC_TYPE}" == "server" ]]; then ( git clone https://github.com/ddpbsd/ossec-scan.git ossec-scan && cd src/ && scan-build -o ../ossec-scan/scans/testing/${OSSEC_TYPE} ${COMMAND} USE_LIBSODIUM=y ) fi 
 
 
 after_success:
