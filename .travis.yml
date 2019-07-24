@@ -55,7 +55,7 @@ before_script:
   && sudo apt-get install libsodium-dev libsodium13
   ); fi
 - if [[ "${OSSEC_TYPE}" == "test" ]]; then ( sudo apt-get update && sudo apt-get install check valgrind ); fi
-#- if [[ "${OSSEC_TYPE}" == "scan" ]]; then (  ); fi
+# - if [[ "${OSSEC_TYPE}" == "scan" ]]; then (  ); fi
 
 
 script:
@@ -76,6 +76,6 @@ script:
 - if [[ "${SCAN}" == "scan" ]]; then ( git clone https://github.com/ddpbsd/ossec-scan.git ossec-scan && cd src/ && scan-build -o ../ossec-scan/scans/testing/${OSSEC_TYPE} make TARGET=${OSSEC_TYPE USE_LIBSODIUM=y ) fi 
 
 
-#after_success:
-#  - if [[ "$TRAVIS_BRANCH" == "master" ]]; then (cd _build/html/ && git config user.email travis-ci@travis && git config user.name  "Travis-CI" && git add . && git commit -m "deployed to github pages" && git push --force --quiet https://$GH_TOKEN@github.com/ossec/ossec.github.io.git); fi
+# after_success:
+#   - if [[ "$TRAVIS_BRANCH" == "master" ]]; then (cd _build/html/ && git config user.email travis-ci@travis && git config user.name  "Travis-CI" && git add . && git commit -m "deployed to github pages" && git push --force --quiet https://$GH_TOKEN@github.com/ossec/ossec.github.io.git); fi
 
