@@ -5,13 +5,7 @@ notifications:
     - ddpbsd@gmail.com
 
 env:
-- DB=mysql OSSEC_TYPE=server GEOIP=yes
-- DB=mysql OSSEC_TYPE=server GEOIP=no
-- DB=pgsql OSSEC_TYPE=server GEOIP=yes
-- DB=pgsql OSSEC_TYPE=server GEOIP=no
-- DB=none OSSEC_TYPE=server GEOIP=yes
-- DB=none OSSEC_TYPE=server GEOIP=no
-- DB=none OSSEC_TYPE=server PRELUDE=yes ZEROMQ=yes
+- DB=none OSSEC_TYPE=server PRELUDE=no ZEROMQ=yes
 - DB=none OSSEC_TYPE=server ZLIB_SYSTEM=yes LUA_ENABLE=no
 - DB=none OSSEC_TYPE=server USE_SQLITE=yes USE_LIBSODIUM=yes
 - DB=none OSSEC_TYPE=local GEOIP=no
@@ -20,7 +14,8 @@ env:
 - DB=none OSSEC_TYPE=winagent GEOIP=no
 - OSSEC_TYPE=test
 - OSSEC_TYPE=server RULES=test
-- OSSEC_TYPE=scan
+- OSSEC_TYPE=server SCAN=yes
+- DB=none OSSEC_TYPE=agent SCAN=yes
 
 
 compiler:
@@ -35,6 +30,10 @@ matrix:
       env: DB=none OSSEC_TYPE=winagent GEOIP=no
     - compiler: clang
       env: OSSEC_TYPE=server RULES=test
+    - compiler: gcc
+      env: OSSEC_TYPE=scan
+    - compiler: gcc
+      env: SCAN=yes
 
 
 
@@ -74,7 +73,7 @@ script:
 
 - if [[ "${OSSEC_TYPE}" == "test" ]]; then ( cd src/ && make --warn-undefined-variables test_valgrind ) fi
 - if [[ "${RULES}" == "test" ]]; then ( cd src/ && sudo make V=1 TARGET=server test-rules ) fi
-- if [[ "${OSSEC_TYPE}" == "scan" ]]; then ( git clone https://github.com/ddpbsd/ossec-scan.git ossec-scan && cd src/ && scan-build -o ../ossec-scan/scans/testing/server gmake TARGET=server USE_LIBSODIUM=y ) fi 
+- if [[ "${SCAN}" == "scan" ]]; then ( git clone https://github.com/ddpbsd/ossec-scan.git ossec-scan && cd src/ && scan-build -o ../ossec-scan/scans/testing/${OSSEC_TYPE} make TARGET=${OSSEC_TYPE USE_LIBSODIUM=y ) fi 
 
 
 #after_success:
