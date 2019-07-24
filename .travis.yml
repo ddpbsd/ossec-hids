@@ -51,7 +51,7 @@ before_script:
   && sudo apt-get install libsodium-dev libsodium13
   ); fi
 - if [[ "${OSSEC_TYPE}" == "test" ]]; then ( sudo apt-get update && sudo apt-get install check valgrind ); fi
-# - if [[ "${OSSEC_TYPE}" == "scan" ]]; then (  ); fi
+- if [[ "${OSSEC_TYPE}" == "scan" ]]; then ( git clone http://github.com/ddpbsd/ossec-scan.git ossec-scan ); fi
 
 
 script:
@@ -64,7 +64,7 @@ script:
      && make --warn-undefined-variables ${COMMAND} settings
      && make --warn-undefined-variables ${COMMAND} external -j
      && make --warn-undefined-variables ${COMMAND} -j )
-  && if ! [[ "${OSSEC_TYPE}" = "test" || "${OSSEC_TYPE}" = "winagent" ]]; then ( cd src/ && sudo make --warn-undefined-variables ${COMMAND} install ) fi
+  && if ! [[ "${OSSEC_TYPE}" = "test" || "${OSSEC_TYPE}" = "winagent" || "${OSSEC_TYPE}" = "scan" ]]; then ( cd src/ && sudo make --warn-undefined-variables ${COMMAND} install ) fi
 
 - if [[ "${OSSEC_TYPE}" == "test" ]]; then ( cd src/ && make --warn-undefined-variables test_valgrind ) fi
 - if [[ "${RULES}" == "test" ]]; then ( cd src/ && sudo make V=1 TARGET=server test-rules ) fi
