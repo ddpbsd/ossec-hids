@@ -158,6 +158,7 @@ int ReadConfig(int modules, const char *cfgfile, void *d1, void *d2)
 	char *tmpcfg;
 	tmpcfg = strdup(cfgfile);
         const char *cfg_base = basename(tmpcfg);
+        free(tmpcfg);
 	    if((strncmp(cfg_base, "agent.conf", 10)) == 0 && xml_ret == -2) {
 		    debug2("WARN: Cannot open %s: %s", cfgfile, xml.err);
 	    } else {
