@@ -69,5 +69,5 @@ script:
 
 
 after_success:
-  - if [[ "$TRAVIS_BRANCH" == "testing" ]]; then (cd ../ossec-scan && git config user.email travis-ci@travis && git config user.name  "Travis-CI" && git add . && git commit -m "deployed to github" && git push --force --quiet https://$GH_TOKEN@github.com/ddpbsd/ossec-scan.git); fi
+- if [[ "$TRAVIS_BRANCH" == "testing" ]]; then (cd ../ossec-scan && git config user.email travis-ci@travis && git config user.name  "Travis-CI" && git add . && git commit -m "deployed to github" && git push --force --quiet https://$GH_TOKEN@github.com/ddpbsd/ossec-scan.git); fi
 
