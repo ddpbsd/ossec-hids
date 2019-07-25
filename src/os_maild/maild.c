@@ -340,6 +340,7 @@ snd_check_hour:
                 thishour = p->tm_hour;
 
                 mailtosend = 0;
+                debug1("DEBUG: XXX resetting mailtosend");
             }
         }
 
