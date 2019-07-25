@@ -302,6 +302,7 @@ int ReadDecodeXML(const char *file)
         /* Check if strdup worked */
         if (!pi->name) {
             merror(MEM_ERROR, ARGV0, errno, strerror(errno));
+            free(pi);
             return (0);
         }
 
@@ -317,9 +318,45 @@ int ReadDecodeXML(const char *file)
         while (elements[j]) {
             if (!elements[j]->element) {
                 merror(XML_ELEMNULL, ARGV0);
+                if (p_name) {
+                    free(p_name);
+                }
+                if(p_name_pcre2) {
+                    free(p_name_pcre2);
+                }
+                if (pcre2) {
+                    free(pcre2);
+                }
+                if (prematch) {
+                    free(prematch);
+                }
+                if (prematch_pcre2) {
+                    free(prematch_pcre2);
+                }
+                if (regex) {
+                    free(regex);
+                }
                 return (0);
             } else if (!elements[j]->content) {
                 merror(XML_VALUENULL, ARGV0, elements[j]->element);
+                if (p_name) {
+                    free(p_name);
+                }
+                if (p_name_pcre2) {
+                    free(p_name_pcre2);
+                }
+                if (pcre2) {
+                    free(pcre2);
+                }
+                if (prematch) {
+                    free(prematch);
+                }
+                if (prematch_pcre2) {
+                    free(prematch_pcre2);
+                }
+                if (regex) {
+                    free(regex);
+                }
                 return (0);
             }
 
@@ -566,7 +603,9 @@ int ReadDecodeXML(const char *file)
                     } else {
                         pi->order[order_int] = DynamicField_FP;
                         pi->fields[order_int] = strdup(*norder);
-
+                        if (pi->fields[order_int][0] == ' ') {
+                            pi->fields[order_int]++;
+                        }
                     }
 
                     free(*norder);

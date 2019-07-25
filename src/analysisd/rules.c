@@ -369,6 +369,7 @@ int Rules_OP_ReadRules(const char *rulefile)
                            "It may lead to false positives and some "
                            "other problems for the system. Exiting.",
                            ARGV0, config_ruleinfo->sigid);
+                    free(config_ruleinfo);
                     OS_ClearXML(&xml);
                     return (-1);
                 }
