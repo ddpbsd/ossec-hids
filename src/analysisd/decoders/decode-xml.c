@@ -328,7 +328,7 @@ int ReadDecodeXML(const char *file)
                     free(pcre2);
                 }
                 if (prematch) {
-                    free(pcrematch);
+                    free(prematch);
                 }
                 if (prematch_pcre2) {
                     free(prematch_pcre2);
@@ -349,7 +349,7 @@ int ReadDecodeXML(const char *file)
                     free(pcre2);
                 }
                 if (prematch) {
-                    free(pcrematch);
+                    free(prematch);
                 }
                 if (prematch_pcre2) {
                     free(prematch_pcre2);
