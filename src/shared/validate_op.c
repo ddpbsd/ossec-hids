@@ -171,6 +171,7 @@ int OS_IPFound(const char *ip_address, const os_ip *that_ip)
 
     /* Extract IP address */
     if (OS_IsValidIP(ip_address, &temp_ip) == 0) {
+        free(temp_ip);
         return (!_true);
     }
 
@@ -179,10 +180,12 @@ int OS_IPFound(const char *ip_address, const os_ip *that_ip)
     if (sacmp((struct sockaddr *) &temp_ip.ss,
               (struct sockaddr *) &that_ip->ss,
               that_ip->prefixlength)) {
+        free(temp_ip);
         return (_true);
     }
 
     /* Didn't match */
+    free(temp_ip);
     return (!_true);
 }
 

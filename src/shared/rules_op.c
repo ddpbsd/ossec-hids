@@ -221,6 +221,7 @@ int OS_ReadXMLRules(const char *rulefile,
             if ((config_ruleinfo->sigid == -1) || (config_ruleinfo->level == -1)) {
                 merror(RL_INV_ATTR, __local_name, rulefile);
                 OS_ClearXML(&xml);
+                free(config_ruleinfo);
                 return (-1);
             }
 

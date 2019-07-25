@@ -165,6 +165,7 @@ int Read_CReports(XML_NODE node, void *config, __attribute__((unused)) void *con
             merror(XML_INVELEM, __local_name, node[i]->element);
             return (OS_INVALID);
         }
+        free(ncat);
         i++;
     }
 
