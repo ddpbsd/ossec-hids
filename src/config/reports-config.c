@@ -157,15 +157,14 @@ int Read_CReports(XML_NODE node, void *config, __attribute__((unused)) void *con
             if (os_report_configfilter(node[i]->element, ncat,
                                        &mon_config->reports[s]->r_filter, reportf) < 0) {
                 merror("%s: Invalid filter: %s:%s (ignored).", __local_name, node[i]->element, node[i]->content);
-                free(ncat);
             }
+            free(ncat);
         } else if (strcmp(node[i]->element, xml_email) == 0) {
             mon_config->reports[s]->emailto = os_AddStrArray(node[i]->content, mon_config->reports[s]->emailto);
         } else {
             merror(XML_INVELEM, __local_name, node[i]->element);
             return (OS_INVALID);
         }
-        free(ncat);
         i++;
     }
 
