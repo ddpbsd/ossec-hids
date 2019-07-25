@@ -64,7 +64,7 @@ script:
 
 - if [[ "${OSSEC_TYPE}" == "test" ]]; then ( cd src/ && make --warn-undefined-variables test_valgrind ) fi
 - if [[ "${RULES}" == "test" ]]; then ( cd src/ && sudo make V=1 TARGET=server test-rules ) fi
-- if [[ "${SCAN}" == "yes" && "${OSSEC_TYPE}" == "server" ]]; then ( cd src/ && scan-build -o ../ossec-scan/scans/testing/${OSSEC_TYPE} ${COMMAND} USE_LIBSODIUM=y ) fi 
+- if [[ "${SCAN}" == "yes" && "${OSSEC_TYPE}" == "server" ]]; then ( cd src/ && scan-build -o ../ossec-scan/scans/testing/${OSSEC_TYPE} make ${COMMAND} USE_LIBSODIUM=y ) fi 
 
 
 after_success:
