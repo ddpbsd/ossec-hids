@@ -518,6 +518,14 @@ void Zero_Eventinfo(Eventinfo *lf)
     lf->data = NULL;
     lf->systemname = NULL;
 
+    if (lf->fields) {
+        int i = 0;
+        while (lf->fields[i]) {
+            free(lf->fields[i]);
+        }
+        //memset(lf->fields, 0, sizeof(DynamicField) * Config.decoder_order_size);
+    }
+
     lf->time = 0;
     lf->matched = 0;
 
@@ -617,6 +625,15 @@ void Free_Eventinfo(Eventinfo *lf)
     if (lf->systemname) {
         free(lf->systemname);
     }
+
+    if (lf->fields) {
+        int i = 0;
+        while (lf->fields[i]) {
+            free(lf->fields[i]);
+        }
+        free(lf->fields);
+    }
+
 
     if (lf->filename) {
         free(lf->filename);
