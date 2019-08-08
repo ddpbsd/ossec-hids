@@ -519,11 +519,10 @@ void Zero_Eventinfo(Eventinfo *lf)
     lf->systemname = NULL;
 
     if (lf->fields) {
-        int i = 0;
-        while (lf->fields[i]) {
+        int i;
+        for (i = 0; i < Config.decoder_order_size && lf->fields[i]; i++) {
             free(lf->fields[i]);
         }
-        //memset(lf->fields, 0, sizeof(DynamicField) * Config.decoder_order_size);
     }
 
     lf->time = 0;
@@ -627,8 +626,8 @@ void Free_Eventinfo(Eventinfo *lf)
     }
 
     if (lf->fields) {
-        int i = 0;
-        while (lf->fields[i]) {
+        int i;
+        for (i = 0; i < Config.decoder_order_size && lf->fields[i]; i++) {
             free(lf->fields[i]);
         }
         free(lf->fields);
