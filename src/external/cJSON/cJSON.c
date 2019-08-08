@@ -41,7 +41,6 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include <float.h>
 #include <limits.h>
 #include <ctype.h>
 
@@ -82,7 +81,7 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item) {
 }
 
 /* This is a safeguard to prevent copy-pasters from using incompatible C and header files */
-#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 7) || (CJSON_VERSION_PATCH != 1)
+#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 7) || (CJSON_VERSION_PATCH != 9)
     #error cJSON.h and cJSON.c have different versions. Make sure that both have the same.
 #endif
 
@@ -120,22 +119,22 @@ static int case_insensitive_strcmp(const unsigned char *string1, const unsigned 
 
 typedef struct internal_hooks
 {
-    void *(*allocate)(size_t size);
-    void (*deallocate)(void *pointer);
-    void *(*reallocate)(void *pointer, size_t size);
+    void *(CJSON_CDECL *allocate)(size_t size);
+    void (CJSON_CDECL *deallocate)(void *pointer);
+    void *(CJSON_CDECL *reallocate)(void *pointer, size_t size);
 } internal_hooks;
 
 #if defined(_MSC_VER)
 /* work around MSVC error C2322: '...' address of dillimport '...' is not static */
-static void *internal_malloc(size_t size)
+static void * CJSON_CDECL internal_malloc(size_t size)
 {
     return malloc(size);
 }
-static void internal_free(void *pointer)
+static void CJSON_CDECL internal_free(void *pointer)
 {
     free(pointer);
 }
-static void *internal_realloc(void *pointer, size_t size)
+static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
 {
     return realloc(pointer, size);
 }
@@ -325,7 +324,7 @@ loop_end:
     {
         item->valueint = INT_MAX;
     }
-    else if (number <= INT_MIN)
+    else if (number <= (double)INT_MIN)
     {
         item->valueint = INT_MIN;
     }
@@ -347,7 +346,7 @@ CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
     {
         object->valueint = INT_MAX;
     }
-    else if (number <= INT_MIN)
+    else if (number <= (double)INT_MIN)
     {
         object->valueint = INT_MIN;
     }
@@ -1114,10 +1113,10 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format, const i
     if (hooks->reallocate != NULL)
     {
         printed = (unsigned char*) hooks->reallocate(buffer->buffer, buffer->offset + 1);
-        buffer->buffer = NULL;
         if (printed == NULL) {
             goto fail;
         }
+        buffer->buffer = NULL;
     }
     else /* otherwise copy the JSON over to a new buffer */
     {
@@ -1311,10 +1310,6 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
             size_t raw_length = 0;
             if (item->valuestring == NULL)
             {
-                if (!output_buffer->noalloc)
-                {
-                    output_buffer->hooks.deallocate(output_buffer->buffer);
-                }
                 return false;
             }
 
@@ -1680,7 +1675,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
         update_offset(output_buffer);
 
         /* print comma if not last */
-        length = (size_t) ((output_buffer->format ? 1 : 0) + (current_item->next ? 1 : 0));
+        length = ((size_t)(output_buffer->format ? 1 : 0) + (size_t)(current_item->next ? 1 : 0));
         output_pointer = ensure(output_buffer, length + 1);
         if (output_pointer == NULL)
         {
@@ -1786,7 +1781,7 @@ static cJSON *get_object_item(const cJSON * const object, const char * const nam
     current_element = object->child;
     if (case_sensitive)
     {
-        while ((current_element != NULL) && (strcmp(name, current_element->string) != 0))
+        while ((current_element != NULL) && (current_element->string != NULL) && (strcmp(name, current_element->string) != 0))
         {
             current_element = current_element->next;
         }
@@ -1797,6 +1792,10 @@ static cJSON *get_object_item(const cJSON * const object, const char * const nam
         {
             current_element = current_element->next;
         }
+    }
+
+    if ((current_element == NULL) || (current_element->string == NULL)) {
+        return NULL;
     }
 
     return current_element;
@@ -1899,9 +1898,28 @@ static void* cast_away_const(const void* string)
 
 static cJSON_bool add_item_to_object(cJSON * const object, const char * const string, cJSON * const item, const internal_hooks * const hooks, const cJSON_bool constant_key)
 {
+    char *new_key = NULL;
+    int new_type = cJSON_Invalid;
+
     if ((object == NULL) || (string == NULL) || (item == NULL))
     {
         return false;
+    }
+
+    if (constant_key)
+    {
+        new_key = (char*)cast_away_const(string);
+        new_type = item->type | cJSON_StringIsConst;
+    }
+    else
+    {
+        new_key = (char*)cJSON_strdup((const unsigned char*)string, hooks);
+        if (new_key == NULL)
+        {
+            return false;
+        }
+
+        new_type = item->type & ~cJSON_StringIsConst;
     }
 
     if (!(item->type & cJSON_StringIsConst) && (item->string != NULL))
@@ -1909,22 +1927,8 @@ static cJSON_bool add_item_to_object(cJSON * const object, const char * const st
         hooks->deallocate(item->string);
     }
 
-    if (constant_key)
-    {
-        item->string = (char*)cast_away_const(string);
-        item->type |= cJSON_StringIsConst;
-    }
-    else
-    {
-        char *key = (char*)cJSON_strdup((const unsigned char*)string, hooks);
-        if (key == NULL)
-        {
-            return false;
-        }
-
-        item->string = key;
-        item->type &= ~cJSON_StringIsConst;
-    }
+    item->string = new_key;
+    item->type = new_type;
 
     return add_item_to_array(object, item);
 }
@@ -2300,7 +2304,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
         {
             item->valueint = INT_MAX;
         }
-        else if (num <= INT_MIN)
+        else if (num <= (double)INT_MIN)
         {
             item->valueint = INT_MIN;
         }
