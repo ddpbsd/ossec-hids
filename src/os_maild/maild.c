@@ -341,7 +341,10 @@ snd_check_hour:
 
                 mailtosend = 0;
                 debug1("DEBUG: XXX resetting mailtosend");
+            } else {
+                merror("XXX thishour: %d, p->tm_hour: %d", thishour, p->tm_hour);
             }
+            
         }
 
         /* Saved message for the do_not_group option */
