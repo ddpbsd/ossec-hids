@@ -287,7 +287,7 @@ static int DB_Search(const char *f_name, const char *c_sum, Eventinfo *lf)
         /* Get name */
         saved_name = strchr(sdb.buf, ' ');
         if (saved_name == NULL) {
-            merror("%s: Invalid integrity message in the database.", ARGV0);
+            merror("%s: Invalid integrity message in the database (%s).", ARGV0, lf->location);
             fgetpos(fp, &sdb.init_pos); /* Get next location */
             continue;
         }
@@ -298,7 +298,7 @@ static int DB_Search(const char *f_name, const char *c_sum, Eventinfo *lf)
         if (*saved_name == '!') {
             saved_name = strchr(saved_name, ' ');
             if (saved_name == NULL) {
-                merror("%s: Invalid integrity message in the database", ARGV0);
+                merror("%s: Invalid integrity message in the database (%s).", ARGV0, lf->location);
                 fgetpos(fp, &sdb.init_pos); /* Get next location */
                 continue;
             }
