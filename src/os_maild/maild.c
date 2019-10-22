@@ -159,34 +159,34 @@ int main(int argc, char **argv)
         goDaemon();
     }
 
-    /* Prepare environment for os_dns */
-    struct imsgbuf osdns_ibuf;
-    int imsg_fds[2];
-    if ((socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, imsg_fds)) == -1) {
-        ErrorExit("%s: ERROR: Could not create socket pair.", ARGV0);
-    }
-    if (setnonblock(imsg_fds[0]) < 0) {
-        ErrorExit("%s: ERROR: Cannot set imsg_fds[0] to nonblock", ARGV0);
-    }
-    if (setnonblock(imsg_fds[1]) < 0) {
-        ErrorExit("%s: ERROR: Cannot set imsg_fds[1] to nonblock", ARGV0);
-    }
-
-    /* Fork off the os_dns process */
     if (mail.smtpserver[0] != '/') {
-        switch(fork()) {
-            case -1:
-                ErrorExit("%s: ERROR: Cannot fork() os_dns process", ARGV0);
-            case 0:
-                close(imsg_fds[0]);
-                imsg_init(&osdns_ibuf, imsg_fds[1]);
-                exit(osdns(&osdns_ibuf, ARGV0));
+        /* Prepare environment for os_dns */
+        struct imsgbuf osdns_ibuf;
+        int imsg_fds[2];
+        if ((socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, imsg_fds)) == -1) {
+            ErrorExit("%s: ERROR: Could not create socket pair.", ARGV0);
         }
-    }
+        if (setnonblock(imsg_fds[0]) < 0) {
+            ErrorExit("%s: ERROR: Cannot set imsg_fds[0] to nonblock", ARGV0);
+        }
+        if (setnonblock(imsg_fds[1]) < 0) {
+            ErrorExit("%s: ERROR: Cannot set imsg_fds[1] to nonblock", ARGV0);
+        }
 
-    /* Setup imsg for the rest of maild */
-    close(imsg_fds[1]);
-    imsg_init(&mail.ibuf, imsg_fds[0]);
+        /* Fork off the os_dns process */
+            switch(fork()) {
+                case -1:
+                    ErrorExit("%s: ERROR: Cannot fork() os_dns process", ARGV0);
+                case 0:
+                    close(imsg_fds[0]);
+                    imsg_init(&osdns_ibuf, imsg_fds[1]);
+                    exit(osdns(&osdns_ibuf, ARGV0));
+            }
+
+        /* Setup imsg for the rest of maild */
+        close(imsg_fds[1]);
+        imsg_init(&mail.ibuf, imsg_fds[0]);
+    }
 
     /* Privilege separation */
     if (Privsep_SetGroup(gid) < 0) {
