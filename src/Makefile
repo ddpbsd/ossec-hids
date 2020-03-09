@@ -70,7 +70,7 @@ ifeq (${uname_S},Linux)
 ifeq (,$(filter ${USE_SYSTEMD},yes y Y 1))
 		DEFINES+=-DHAVE_SYSTEMD
 		OSSEC_LDFLAGS+=-lsystemd
-end
+endif
 #		DEFINES+=-DUSE_MAGIC
 #		OSSEC_LDFLAGS+=-lmagic
 else
