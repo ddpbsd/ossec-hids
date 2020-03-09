@@ -67,7 +67,7 @@ ifneq (${TARGET},winagent)
 ifeq (${uname_S},Linux)
 		DEFINES+=-DINOTIFY_ENABLED
 		OSSEC_LDFLAGS+=-lpthread
-ifeq (,$(filter ${USE_SYSTEMD},yes y Y 1))
+ifeq (${USE_SYSTEMD},yes)
 		DEFINES+=-DHAVE_SYSTEMD
 		OSSEC_LDFLAGS+=-lsystemd
 endif
