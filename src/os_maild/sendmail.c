@@ -15,7 +15,11 @@
 #include "os_net/os_net.h"
 #include "maild.h"
 #include "mail_list.h"
-#include "os_dns/os_dns.h"
+#include "os_dns.h"
+
+#ifdef USE_LIBTLS
+#include <tls.h>
+#endif	//USE_LIBTLS
 
 /* Return codes (from SMTP server) */
 #define VALIDBANNER     "220"
@@ -49,7 +53,7 @@
 #define MAIL_DEBUG_FLAG     0
 #define MAIL_DEBUG(x,y,z) if(MAIL_DEBUG_FLAG) merror(x,y,z)
 
-int os_sock;
+int os_sock, istls;
 
 void os_sendmail_cb(int fd, short ev, void *arg) {
 
@@ -114,6 +118,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
     unsigned int i = 0;
     char *msg;
     char snd_msg[128];
+    istls = 0;
 
     MailNode *mailmsg;
 
@@ -140,6 +145,37 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         if (!eb) {
             ErrorExit("%s: ERROR: event_init() failed.", ARGV0);
         }
+
+#ifdef USE_LIBTLS
+        struct tls_config *cfg = NULL;
+        struct tls *ctx = NULL;
+
+        if (mail->use_tls == 1) {
+            /* initialize tls context */
+            if ((tls_init()) == -1) {
+                merror("%s: use_tls() failed.", ARGV0);
+                return (OS_INVALID);
+            }
+            if ((cfg = tls_config_new()) == NULL) {
+                merror("%s: tls_config_new() failed.", ARGV0);
+                return (OS_INVALID);
+            }
+            if (tls_config_set_ca_file(cfg, mail->ca_file) != 0) {
+                merror("%s: Cannot set ca file.", ARGV0);
+                return (OS_INVALID);
+            }
+            if ((ctx = tls_client()) == NULL) {
+                merror("%s: tls_client() failed.", ARGV0);
+                return(OS_INVALID);
+            }
+            /* Apply the ctx to cfg */
+            if (tls_configure(ctx, cfg) != 0) {
+                merror("%s: tls_configure() failed.", ARGV0);
+                return(OS_INVALID);
+            }
+
+        }
+#endif //USE_LIBTLS
 
         struct event ev_accept;
         struct timeval event_tv;
@@ -228,21 +264,81 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         MAIL_DEBUG("DEBUG: Sent '%s', received: '%s'", snd_msg, msg);
         free(msg);
 
+#ifdef USE_LIBTLS
+        if(mail->use_tls == 1) {
+            /* Try to STARTTLS */
+            OS_SendTCP(os_sock, "STARTTLS\r\n");
+            msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
+            if ((msg == NULL) || (!OS_Match(VALIDBANNER, msg))) {
+                merror("%s: ERROR: Cannot STARTTLS", ARGV0);
+                close(os_sock);
+                return (OS_INVALID);
+            } else {
+                istls = 1;
+            }
+            /* Resend the HELO */
+            if ((tls_write(ctx, snd_msg, sizeof(snd_msg))) == -1) {
+                merror("%s: ERROR: Cannot send second HELO.", ARGV0);
+                close(os_sock);
+                return(OS_INVALID);
+            }
+            if ((tls_read(ctx, msg, sizeof(msg))) == -1) {
+                merror("%s: ERROR: Cannot read HELO banner.", ARGV0);
+                close(os_sock);
+                return(OS_INVALID);
+            }
+            if ((msg == NULL) || (!OS_Match(VALIDMAIL, msg))) {
+                merror("%s:%s", HELO_ERROR, "null");
+                close(os_sock);
+                return (OS_INVALID);
+            }
+        }
+#endif //USE_LIBTLS
+
         /* Build "Mail from" msg */
         memset(snd_msg, '\0', 128);
         snprintf(snd_msg, 127, MAILFROM, mail->from);
-        OS_SendTCP(os_sock, snd_msg);
-        msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
-        if ((msg == NULL) || (!OS_Match(VALIDMAIL, msg))) {
-            merror(FROM_ERROR);
-            if (msg) {
-                free(msg);
+#ifdef USE_TLS
+        if (istls == 1) {
+            if ((tls_write(ctx, snd_msg, sizeof(snd_msg))) == -1) {
+                merror(FROM_ERROR);
+                if (msg) {
+                    free(msg);
+                }
+                close(os_sock);
+                return(OS_INVALID);
             }
-            close(os_sock);
-            return (OS_INVALID);
+            if ((tls_read(ctx, msg, OS_SIZE_1024)) == -1) {
+                merror("%s: ERROR: Cannot tls_read MAILFROM", ARGV0);
+                close(os_sock);
+                return(OS_INVALID);
+            }
+            if ((msg == NULL) || (!OS_Match(VALIDMAIL, msg))) {
+                merror(FROM_ERROR);
+                if (msg) {
+                   free(msg);
+                }
+                close(os_sock);
+                return(OS_INVALID);
+            }
+        } else {
+#endif //USE_TLS
+
+            OS_SendTCP(os_sock, snd_msg);
+            msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
+            if ((msg == NULL) || (!OS_Match(VALIDMAIL, msg))) {
+                merror(FROM_ERROR);
+                if (msg) {
+                    free(msg);
+                }
+                close(os_sock);
+                return (OS_INVALID);
+            }
+            MAIL_DEBUG("DEBUG: Sent '%s', received: '%s'", snd_msg, msg);
+            free(msg);
+#ifdef USE_LIBTLS
         }
-        MAIL_DEBUG("DEBUG: Sent '%s', received: '%s'", snd_msg, msg);
-        free(msg);
+#endif //USE_LIBTLS
 
         /* Build "RCPT TO" msg */
         while (1) {
@@ -256,8 +352,25 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
             }
             memset(snd_msg, '\0', 128);
             snprintf(snd_msg, 127, RCPTTO, mail->to[i++]);
-            OS_SendTCP(os_sock, snd_msg);
-            msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
+#ifdef USE_LIBTLS
+            if (istls == 1) {
+                if ((tls_write(ctx, snd_msg, sizeof(snd_msg))) == -1) {
+                    merror("%s: ERROR: rcpt to failed.", ARGV0);
+                    close(os_sock);
+                    return(OS_INVALID);
+                }
+                if ((tls_read(ctx, msg, sizeof(msg))) == -1) {
+                    merror("%s: ERROR: cannot read rcpt to response.", ARGV0);
+                    close(os_sock);
+                    return(OS_INVALID);
+                }
+            } else {
+#endif //USE_LIBTLS
+                OS_SendTCP(os_sock, snd_msg);
+                msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
+#ifdef USE_LIBTLS
+            }
+#endif //USE_LIBTLS
             if ((msg == NULL) || (!OS_Match(VALIDMAIL, msg))) {
                 merror(TO_ERROR, mail->to[i - 1]);
                 if (msg) {
@@ -281,8 +394,25 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
 
                 memset(snd_msg, '\0', 128);
                 snprintf(snd_msg, 127, RCPTTO, mail->gran_to[i]);
-                OS_SendTCP(os_sock, snd_msg);
-                msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
+#ifdef USE_LIBTLS
+                if (istls == 1) {
+                    if ((tls_write(ctx, snd_msg, sizeof(snd_msg))) == -1) {
+                        merror("%s: ERROR: Cannot send rcptto", ARGV0);
+                        close(os_sock);
+                        return(OS_INVALID);
+                    }
+                    if ((tls_read(ctx, msg, sizeof(msg))) == -1) {
+                        merror("%s: ERROR: Cannot receive rcptto response.", ARGV0);
+                        close(os_sock);
+                        return (OS_INVALID);
+                    }
+                } else {
+#endif //USE_LIBTLS
+                    OS_SendTCP(os_sock, snd_msg);
+                    msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
+#ifdef USE_LIBTLS
+                }
+#endif //USE_LIBTLS
                 if ((msg == NULL) || (!OS_Match(VALIDMAIL, msg))) {
                     merror(TO_ERROR, mail->gran_to[i]);
                     if (msg) {
@@ -301,8 +431,26 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         }
 
         /* Send the "DATA" msg */
-        OS_SendTCP(os_sock, DATAMSG);
-        msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
+#ifdef USE_LIBTLS
+        if (istls == 1) {
+            if ((tls_write(ctx, DATAMSG, sizeof(DATAMSG))) == -1) {
+                merror("%s: ERROR: Cannot send DATAMSG", ARGV0);
+                close(os_sock);
+                return(OS_INVALID);
+            }
+            if ((tls_read(ctx, msg, sizeof(msg))) == -1) {
+                merror("%s: ERROR: Cannot receive DATAMSG response.", ARGV0);
+                close(os_sock);
+                return (OS_INVALID);
+            }
+        } else {
+#endif //USE_LIBTLS
+
+            OS_SendTCP(os_sock, DATAMSG);
+            msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
+#ifdef USE_LIBTLS
+        }
+#endif //USE_TLS
         if ((msg == NULL) || (!OS_Match(VALIDDATA, msg))) {
             merror(DATA_ERROR);
             if (msg) {
@@ -322,7 +470,19 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
     if (sendmail) {
         fprintf(sendmail, "%s", snd_msg);
     } else {
-        OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+        if (istls == 1) {
+            if ((tls_write(ctx, snd_msg, strnlen(snd_msg, OS_SIZE_1024))) == -1) {
+                merror("%s: ERROR: Cannot send To", ARGV0);
+                close(os_sock);
+                return(OS_INVALID);
+            }
+        } else {
+#endif //USE_LIBTLS
+            OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+        }
+#endif //USE_LIBTLS
     }
 
     memset(snd_msg, '\0', 128);
@@ -331,7 +491,19 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
     if (sendmail) {
         fprintf(sendmail, "%s", snd_msg);
     } else {
-        OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+        if (istls == 1) {
+            if ((tls_write(ctx, snd_msg, strnlen(snd_msg, OS_SIZE_1024))) == -1) {
+                merror("%s: ERROR: Cannot send From", ARGV0);
+                close(os_sock);
+                return(OS_INVALID);
+            }
+        } else {
+#endif //USE_LIBTLS
+            OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+        }
+#endif
     }
 
     /* Send reply-to if set */
@@ -341,7 +513,19 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         if (sendmail) {
             fprintf(sendmail, "%s", snd_msg);
         } else {
-            OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+            if (istls == 1) {
+                if ((tls_write(ctx, snd_msg, strnlen(snd_msg, OS_SIZE_1024))) == -1) {
+                    merror("%s: ERROR: Cannot send reply_to", ARGV0);
+                    close(os_sock);
+                    return(OS_INVALID);
+                }
+            } else {
+#endif //USE_LIBTLS
+                OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+            }
+#endif //USE_LIBTLS
         }
     }
 
@@ -359,7 +543,19 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
             if (sendmail) {
                 fprintf(sendmail, "%s", snd_msg);
             } else {
-                OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+                if (istls == 1) {
+                    if ((tls_write(ctx, snd_msg, strnlen(snd_msg, OS_SIZE_1024))) == -1) {
+                        merror("%s: ERROR: Cannot send mail to cc", ARGV0);
+                        close(os_sock);
+                        return(OS_INVALID);
+                    }
+                } else {
+#endif //USE_LIBTLS
+                    OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+                }
+#endif //USE_LIBTLS
             }
 
             i++;
@@ -381,7 +577,19 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
             if (sendmail) {
                 fprintf(sendmail, "%s", snd_msg);
             } else {
-                OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+                if (istls == 1) {
+                    if ((tls_write(ctx, snd_msg, strnlen(snd_msg, OS_SIZE_1024))) == -1) {
+                        merror("%s: ERROR: Cannot send granular to", ARGV0);
+                        close(os_sock);
+                        return(OS_INVALID);
+                    }
+                } else {
+#endif //USE_LIBTLS
+                    OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+                }
+#endif //USE_LIBTLS
             }
 
             i++;
@@ -402,7 +610,19 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
     if (sendmail) {
         fprintf(sendmail, "%s", snd_msg);
     } else {
-        OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+        if (istls == 1) {
+            if ((tls_write(ctx, snd_msg, strnlen(snd_msg, OS_SIZE_1024))) == -1) {
+                merror("%s: ERROR: Cannot send date", ARGV0);
+                close(os_sock);
+                return(OS_INVALID);
+            }
+        } else {
+#endif //USE_LIBTLS
+            OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+        }
+#endif //USE_LIBTLS
     }
 
     if (mail->idsname) {
@@ -413,7 +633,19 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         if (sendmail) {
             fprintf(sendmail, "%s", snd_msg);
         } else {
-            OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+            if (istls == 1) {
+                if ((tls_write(ctx, snd_msg, strnlen(snd_msg, OS_SIZE_1024))) == -1) {
+                    merror("%s: ERROR: Cannot send idsname", ARGV0);
+                    close(os_sock);
+                    return(OS_INVALID);
+                }
+            } else {
+#endif //USE_LIBTLS
+                OS_SendTCP(os_sock, snd_msg);
+#ifdef USE_LIBTLS
+            }
+#endif //USE_LIBTLS
         }
     }
 
@@ -435,8 +667,25 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         fprintf(sendmail, "%s", snd_msg);
         fprintf(sendmail, ENDHEADER);
     } else {
-        OS_SendTCP(os_sock, snd_msg);
-        OS_SendTCP(os_sock, ENDHEADER);
+#ifdef USE_LIBTLS
+        if (istls == 1) {
+            if ((tls_write(ctx, snd_msg, strnlen(snd_msg, OS_SIZE_1024))) == -1) {
+                merror("%s: ERROR: Cannot send subject", ARGV0);
+                close(os_sock);
+                return(OS_INVALID);
+            }
+            if ((tls_write(ctx, ENDHEADER, strnlen(ENDHEDER, 1024))) == -1) {
+                merror("%s: ERROR: Cannot send ENDHEADER", ARGV0);
+                close(os_sock);
+                return(OS_INVALID);
+            }
+        } else {
+#endif //USE_LIBTLS
+            OS_SendTCP(os_sock, snd_msg);
+            OS_SendTCP(os_sock, ENDHEADER);
+#ifdef USE_LIBTLS
+        }
+#endif //USE_LIBTLS
     }
 
     /* Send body */
@@ -446,7 +695,19 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         if (sendmail) {
             fprintf(sendmail, "%s", mailmsg->mail->body);
         } else {
-            OS_SendTCP(os_sock, mailmsg->mail->body);
+#ifdef USE_LIBTLS
+            if (istls == 1) {
+                if ((tls_write(ctx, mailmsg->mail->body, sizeof(mailmsg->mail->body))) == -1) {
+                    merror("%s: ERROR: Cannot send body", ARGV0);
+                    close(os_sock);
+                    return(OS_INVALID);
+                }
+            } else {
+#endif //USE_LIBTLS
+                OS_SendTCP(os_sock, mailmsg->mail->body);
+#ifdef USE_LIBTLS
+            }
+#endif //USE_LIBTLS
         }
         mailmsg = OS_PopLastMail();
     } while (mailmsg);
@@ -457,8 +718,25 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         }
     } else {
         /* Send end of data \r\n.\r\n */
-        OS_SendTCP(os_sock, ENDDATA);
-        msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
+#ifdef USE_LIBTLS
+        if (istls == 1) {
+            if ((tls_write(ctx, ENDDATA, strnlen(ENDDATA))) == -1) {
+                merror("%s: ERROR: Cannot send ENDDATA", ARGV0);
+                close(os_sock);
+                return(OS_INVALID);
+            }
+            if ((tls_read(ctx, msg, sizeof(msg))) == -1) {
+                merror("%s: ERROR: Cannot receive ENDDATA response.", ARGV0);
+                close(os_sock);
+                return(OS_INVALID);
+            }
+        } else {
+#endif //USE_LIBTLS
+            OS_SendTCP(os_sock, ENDDATA);
+            msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
+#ifdef USE_LIBTLS
+        }
+#endif //USE_LIBTLS
         if (mail->strict_checking && ((msg == NULL) || (!OS_Match(VALIDMAIL, msg)))) {
             merror(END_DATA_ERROR);
             if (msg) {
@@ -474,8 +752,21 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         }
 
         /* Quit and close os_sock */
-        OS_SendTCP(os_sock, QUITMSG);
-        msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
+#ifdef USE_LIBTLS
+        if (istls == 1) {
+            if ((tls_write(ctx, QUITMSG, strnlen(QUITMSG, 1024))) == -1) {
+                merror("%s: ERROR: Cannot send QUITMSG", ARGV0);
+            }
+            if ((tls_write(ctx, msg, sizeof(msg))) == -1) {
+                merror("%s: ERROR: Cannot receive QUITMSG response.", ARGV0);
+            }
+        } else {
+#endif //USE_LIBTLS
+            OS_SendTCP(os_sock, QUITMSG);
+            msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
+#ifdef USE_LIBTLS
+        }
+#endif //USE_LIBTLS
 
         if (msg) {
             free(msg);
