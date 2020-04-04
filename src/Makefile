@@ -610,6 +610,7 @@ settings:
 	@echo "    USE_INOTIFY:      ${USE_INOTIFY}"
 	@echo "    USE_SQLITE:       ${USE_SQLITE}"
 	@echo "    USE_PCRE2_JIT:    ${USE_PCRE2_JIT}"
+	@echo "    USE_LIBTLS:       ${USE_LIBTLS}"
 	@echo "Mysql settings:"
 	@echo "    includes:         ${MI}"
 	@echo "    libs:             ${ML}"
