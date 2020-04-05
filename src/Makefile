@@ -247,7 +247,7 @@ ifneq (,$(filter ${USE_SQLITE},auto yes y Y 1))
 endif # USE_SQLITE
 
 ifneq (,$(filter ${USE_LIBTLS},auto yes y Y 1))
-	DEFINES+=-DTLS_ENABLED
+	DEFINES+=-DUSE_LIBTLS
 	MAILD_CFLAGS+=-ltls
 endif # USE_LIBTLS
 
