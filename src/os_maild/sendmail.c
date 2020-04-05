@@ -120,10 +120,15 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
     char snd_msg[128];
     istls = 0;
 
+#ifdef USE_LIBTLS
+    struct tls_config *cfg = NULL;
+    struct tls *ctx = NULL;
+#endif //USE_LIBTLS
+
     MailNode *mailmsg;
 
-    merror("%s: DEBUG: use_tls: %d", mail->smtp_use_tls);
-    merror("%s: DEBUG: ca_file: %s", mail->ca_file);
+    merror("XXX DEBUG: use_tls: %d", mail->smtp_use_tls);
+    merror("XXX DEBUG: ca_file: %s", mail->ca_file);
 
     /* If there is no sms message, attempt to get from the email list */
     mailmsg = OS_PopLastMail();
@@ -150,9 +155,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         }
 
 #ifdef USE_LIBTLS
-        struct tls_config *cfg = NULL;
-        struct tls *ctx = NULL;
-
+merror("XXX Setting up tls");
         if (mail->smtp_use_tls == 1) {
             merror("%s: DEBUG: Configuring tls", ARGV0);
             /* initialize tls context */
@@ -179,6 +182,8 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
             }
 
         }
+        
+merror("XXX Set up tls");
 #endif //USE_LIBTLS
 
         struct event ev_accept;
@@ -269,7 +274,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         free(msg);
 
 #ifdef USE_LIBTLS
-        if(mail->use_tls == 1) {
+        if(mail->smtp_use_tls == 1) {
             /* Try to STARTTLS */
             OS_SendTCP(os_sock, "STARTTLS\r\n");
             msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
@@ -310,7 +315,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         /* Build "Mail from" msg */
         memset(snd_msg, '\0', 128);
         snprintf(snd_msg, 127, MAILFROM, mail->from);
-#ifdef USE_TLS
+#ifdef USE_LIBTLS
         if (istls == 1) {
             if ((tls_write(ctx, snd_msg, sizeof(snd_msg))) == -1) {
                 merror(FROM_ERROR);
@@ -334,7 +339,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
                 return(OS_INVALID);
             }
         } else {
-#endif //USE_TLS
+#endif //USE_LIBTLS
 
             OS_SendTCP(os_sock, snd_msg);
             msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
@@ -462,7 +467,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
             msg = OS_RecvTCP(os_sock, OS_SIZE_1024);
 #ifdef USE_LIBTLS
         }
-#endif //USE_TLS
+#endif //USE_LIBTLS
         if ((msg == NULL) || (!OS_Match(VALIDDATA, msg))) {
             merror(DATA_ERROR);
             if (msg) {
@@ -686,7 +691,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
                 close(os_sock);
                 return(OS_INVALID);
             }
-            if ((tls_write(ctx, ENDHEADER, strnlen(ENDHEDER, 1024))) == -1) {
+            if ((tls_write(ctx, ENDHEADER, strnlen(ENDHEADER, 1024))) == -1) {
                 merror("%s: ERROR: Cannot send ENDHEADER", ARGV0);
                 close(os_sock);
                 return(OS_INVALID);
@@ -732,7 +737,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         /* Send end of data \r\n.\r\n */
 #ifdef USE_LIBTLS
         if (istls == 1) {
-            if ((tls_write(ctx, ENDDATA, strnlen(ENDDATA))) == -1) {
+            if ((tls_write(ctx, ENDDATA, strnlen(ENDDATA, 1024))) == -1) {
                 merror("%s: ERROR: Cannot send ENDDATA", ARGV0);
                 close(os_sock);
                 return(OS_INVALID);

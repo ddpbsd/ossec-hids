@@ -931,10 +931,10 @@ os_maild_c := $(wildcard os_maild/*.c)
 os_maild_o := $(os_maild_c:.c=.o)
 
 os_maild/%.o: os_maild/%.c
-	${OSSEC_CC} ${OSSEC_CFLAGS} ${MAILD_FLAGS} -DARGV0=\"ossec-maild\" -c $^ -o $@
+	${OSSEC_CC} ${OSSEC_CFLAGS} ${MAILD_CFLAGS} -DARGV0=\"ossec-maild\" -c $^ -o $@
 
 ossec-maild: ${os_maild_o} ${ossec_libs}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${MAILD_FLAGS} $^ ${OSSEC_LDFLAGS} ${DNS_CFLAGS} -levent ${COMPAT_FILES} -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${MAILD_CFLAGS} $^ ${OSSEC_LDFLAGS} ${DNS_CFLAGS} -levent ${COMPAT_FILES} -o $@
 
 #### os_dbd ##########
 

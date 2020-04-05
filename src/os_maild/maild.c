@@ -237,6 +237,8 @@ static void OS_Run(MailConfig *mail)
     MailMsg *s_msg = NULL;
     MailMsg *msg_sms = NULL;
 
+    merror("%s: DEBUG: smtp_use_tls: %d", ARGV0, mail->smtp_use_tls);
+
     time_t tm;
     struct tm *p;
 
