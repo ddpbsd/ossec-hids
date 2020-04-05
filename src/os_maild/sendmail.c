@@ -123,7 +123,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
     MailNode *mailmsg;
 
     merror("%s: DEBUG: use_tls: %d", mail->use_tls);
-    merror("$s: DEBUG: ca_file: %s", mail->ca_file);
+    merror("%s: DEBUG: ca_file: %s", mail->ca_file);
 
     /* If there is no sms message, attempt to get from the email list */
     mailmsg = OS_PopLastMail();
