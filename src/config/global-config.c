@@ -492,7 +492,7 @@ int Read_Global(XML_NODE node, void *configp, void *mailp)
         } else if (strcmp(node[i]->element, xml_use_tls) == 0) {
             if (Mail) {
                 if (strncmp(node[i]->content, "yes", 3)) {
-                    Mail->use_tls = 1;
+                    Mail->smtp_use_tls = 1;
                 }
             }
         } else if (strcmp(node[i]->element, xml_ca_file) == 0) {
