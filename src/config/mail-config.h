@@ -28,7 +28,7 @@ typedef struct _MailConfig {
     int groupping;
     int subject_full;
     int priority;
-    int use_tls;
+    int smtp_use_tls;
     char **to;
     char *reply_to;
     char *from;
