@@ -122,7 +122,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
 
     MailNode *mailmsg;
 
-    merror("%s: DEBUG: use_tls: %d", mail->use_tls);
+    merror("%s: DEBUG: use_tls: %d", mail->smtp_use_tls);
     merror("%s: DEBUG: ca_file: %s", mail->ca_file);
 
     /* If there is no sms message, attempt to get from the email list */
@@ -153,7 +153,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         struct tls_config *cfg = NULL;
         struct tls *ctx = NULL;
 
-        if (mail->use_tls == 1) {
+        if (mail->smtp_use_tls == 1) {
             merror("%s: DEBUG: Configuring tls", ARGV0);
             /* initialize tls context */
             if ((tls_init()) == -1) {

@@ -123,7 +123,7 @@ int Read_Global(XML_NODE node, void *configp, void *mailp)
     const char *xml_heloserver = "helo_server";
     const char *xml_mailmaxperhour = "email_maxperhour";
 
-    const char *xml_use_tls = "use_tls";
+    const char *xml_use_tls = "smtp_use_tls";
     const char *xml_ca_file = "smtp_ca_file";
 
 #ifdef LIBGEOIP_ENABLED
