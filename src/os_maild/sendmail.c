@@ -151,6 +151,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         struct tls *ctx = NULL;
 
         if (mail->use_tls == 1) {
+            debug1("%s: DEBUG: Configuring tls", ARGV0);
             /* initialize tls context */
             if ((tls_init()) == -1) {
                 merror("%s: use_tls() failed.", ARGV0);
@@ -275,22 +276,30 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
                 return (OS_INVALID);
             } else {
                 istls = 1;
-            }
-            /* Resend the HELO */
-            if ((tls_write(ctx, snd_msg, sizeof(snd_msg))) == -1) {
-                merror("%s: ERROR: Cannot send second HELO.", ARGV0);
-                close(os_sock);
-                return(OS_INVALID);
-            }
-            if ((tls_read(ctx, msg, sizeof(msg))) == -1) {
-                merror("%s: ERROR: Cannot read HELO banner.", ARGV0);
-                close(os_sock);
-                return(OS_INVALID);
-            }
-            if ((msg == NULL) || (!OS_Match(VALIDMAIL, msg))) {
-                merror("%s:%s", HELO_ERROR, "null");
-                close(os_sock);
-                return (OS_INVALID);
+
+                if ((tls_connect_socket(ctx, os_sock, mail->smtpserver)) == -1) {
+                    merror("%s: ERROR: tls_connect_socker() failed.", ARGV0);
+                    close(os_sock);
+                    return(OS_INVALID);
+                }
+
+                /* Resend the HELO */
+                if ((tls_write(ctx, snd_msg, sizeof(snd_msg))) == -1) {
+                    merror("%s: ERROR: Cannot send second HELO.", ARGV0);
+                    close(os_sock);
+                    return(OS_INVALID);
+                }
+                if ((tls_read(ctx, msg, sizeof(msg))) == -1) {
+                    merror("%s: ERROR: Cannot read HELO banner.", ARGV0);
+                    debug1("%s: DEBUG: response: %s", ARGV0, msg);
+                    close(os_sock);
+                    return(OS_INVALID);
+                }
+                if ((msg == NULL) || (!OS_Match(VALIDMAIL, msg))) {
+                    merror("%s:%s", HELO_ERROR, "null");
+                    close(os_sock);
+                    return (OS_INVALID);
+                }
             }
         }
 #endif //USE_LIBTLS
