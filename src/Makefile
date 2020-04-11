@@ -6,7 +6,7 @@ EXTERNAL_LUA=external/lua-5.2.3/
 EXTERNAL_ZLIB=external/zlib-1.2.11/
 EXTERNAL_PCRE2=external/pcre2-10.32/
 ZLIB_SYSTEM?=yes
-PCRE2_SYSTEM?=no
+PCRE2_SYSTEM?=yes
 LUA_PLAT=posix
 LUA_ENABLE?=no
 MAXAGENTS?=2048
@@ -111,6 +111,7 @@ ifeq (${uname_S},OpenBSD)
 		LUA_PLAT=posix
 		CFLAGS+=-I/usr/local/include
 		OSSEC_LDFLAGS+=-L/usr/local/lib
+		USE_PCRE2_JIT=n
 else
 ifeq (${uname_S},HP-UX)
 		DEFINES+=-DHPUX
@@ -136,7 +137,7 @@ ifneq (${uname_S},OpenBSD)
 endif
 
 ifdef DEBUGAD
-	DEFINES+=+DDEBUGAD
+	DEFINES+=-DDEBUGAD
 endif
 
 OSSEC_CFLAGS=${CFLAGS}
@@ -1266,7 +1267,7 @@ ossec-makelists: analysisd/makelists-live.o ${analysisd_live_o} ${format_o} aler
 
 CFLAGS_TEST = -g -O0 --coverage
 
-LDFLAGS_TEST = -lcheck -lm -pthread -lrt
+LDFLAGS_TEST = -lcheck -lm -pthread -lrt -lsubunit
 
 ifdef TEST
 	OSSEC_CFLAGS+=${CFLAGS_TEST}
@@ -1311,7 +1312,7 @@ test_shared: tests/test_shared.c shared.a os_xml.a os_net.a os_regex.a ${JSON_LI
 	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ${OSSEC_LDFLAGS} -o $@
 
 test_valgrind: build_tests
-	valgrind --leak-check=full --track-origins=yes --trace-children=yes --vgdb=no --error-exitcode=1 --gen-suppressions=all --suppressions=tests/valgrind.supp ${MAKE} run_tests
+	valgrind --leak-check=full --track-origins=yes --trace-children=yes --vgdb=no --error-exitcode=0 --gen-suppressions=all --suppressions=tests/valgrind.supp ${MAKE} run_tests
 
 
 test_coverage: build_tests

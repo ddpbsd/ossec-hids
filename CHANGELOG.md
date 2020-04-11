@@ -1,3 +1,162 @@
+**OSSEC changelog (3.6.0) <scott@atomicorp.com>**
+
+**Release Maintainers**
+
+Dan Parriott
+
+Scott R. Shinn (http://www.atomicorp.com)
+
+
+**Contributors on this release**
+
+@ddpbsd Dan Parriot - Maintainer
+
+@NicolasCARPi - Nocolas Carpi - Community
+
+@cpu - Daniel McCarney - Community
+
+@jknockaert - Jasper Knockaert - Community
+
+@mwidman - Mike Widman - Community
+
+@drsjb80 - Steve Beaty - Community
+ 
+
+ 
+**General** 
+
+@ddpbsd - ossec-dbd, Add help output to dbd, https://github.com/ossec/ossec-hids/pull/1833
+
+@NicolasCARPi - INSTALL, updating depenency list, 
+https://github.com/ossec/ossec-hids/pull/1832
+
+@cpu - PCRE2, refuse to compile empty PCRE2 patterns, fix for Issue #1811,  https://github.com/ossec/ossec-hids/pull/1826
+
+@cpu, analysisd, resolves CVE-2020-8442 Issue #1820, https://github.com/ossec/ossec-hids/pull/1825 
+
+@cpu, analysisd, resolves CVE-2020-8443 Issue #1816, https://github.com/ossec/ossec-hids/pull/1824
+
+@cpu, analysisd, resolves CVE-2020-8448 Issue #1815, https://github.com/ossec/ossec-hids/pull/1823
+
+@cpu, Makefile, fix for DEBUGAD, https://github.com/ossec/ossec-hids/pull/1822
+
+@jknockaert - dropbear rules, limit brute force rule to dropbear, https://github.com/ossec/ossec-hids/pull/1803
+
+@mwidman, analysisd, Added non-standard Sophos UTM syslog timestamp format to pre-decoding. , https://github.com/ossec/ossec-hids/pull/1794
+
+@drsjb80 - configs, Added authentication log file location for debian-based systems , https://github.com/ossec/ossec-hids/pull/1784
+
+@ddpbsd - maild, Fix using a program to send mail, https://github.com/ossec/ossec-hids/pull/1783
+
+
+
+**OSSEC changelog (3.5.0) <scott@atomicorp.com>**
+
+**Release Maintainers**
+
+Dan Parriott
+Scott R. Shinn (http://www.atomicorp.com)
+
+**Contributors on this release**
+
+(@atomicturtle) Scott Shinn - Maintainer
+(@ddpbsd) Dan Parriot - Maintainer
+(@drsjb80) Steve Beaty - Community
+(@sempervictus) Boris Lukashev - Community
+
+**Release notes**
+
+This would have been a minor 3.4.1 update if it wasnt for Boris Lukashev of https://www.sempervictus.com
+contributing a much needed update to multi-line log analysis. Previous usage of multi-line in OSSEC in
+the past was limited in processing events that did not use indentiation, a fairly common modern practice
+for readability. This update adds a new type: multi-line_indented to handle this condition (Example: postgresql). 
+
+Maintenance fixes in this release also address issue #1781, which affected maild when calling an external program, and add support for Fedora 31
+
+
+Whats New:
+
+(@atomicturtle) - Fedora 31 Support
+(@sempervictus) - Implement multi-line collection for indented logs #1780
+(@drsjb80) -  Added authentication log file location for debian-based systems #1784
+
+
+General
+
+(@ddpbsd) - Fix for Issue #1781, corrects issues with program sending mail
+
+
+
+
+OSSEC changelog (3.4.0) <scott@atomicorp.com>
+
+Release Maintainers
+
+Dan Parriott
+Scott R. Shinn (http://www.atomicorp.com)
+
+Contributors on this release
+
+(ddpbsd) Dan Parriot
+(bchavet)
+(binrush)
+(mikeroyal)
+(iasdeoupxe)
+(aquerubin)
+(Varstahl) 
+(atomicturtle)
+(jubois)
+(almirb)
+
+Release notes:
+libevent handler https://github.com/ossec/ossec-hids/pull/1698 for dialog.
+pcre2 rules
+
+
+Whats New
+Big changes in this release add support for the following new platforms: 
+	- Debian buster
+	- Fedora 30 
+	- RHEL 8
+	- (Much awaited!) Centos 8
+
+Snapcraft.io universal linux packaging support (aka Snaps)  allow for a universal OSSEC package across multiple linux distributions.
+	
+Last but not least, ddpbsd has a long awaited fix for agentd/maild when ipv6 is disabled and/or hostnames are used instead of IPs in PR#1698. Thanks again to all our community contributors, and dedicated team members for their work on this release!
+
+New Rules / Decoders
+
+(aquerubin) Updated IPv4-dependent regexp in ownCloud decoders. PR#1697
+(jubois) Fix Issue #1708 (Incorrect regex match) PR#1710
+(jubois) PCRE2 rulefiles conversion PR#1711
+(jubois) PCRE2 decoders conversion PR#1712
+(aquerubin) Fix owncloud decoder PR#1724
+(iasdeoupxe) Additional ownCloud decoder fix PR#1725
+(iasdeoupxe) Second ownCloud decoder fix PR#1726
+(ddpbsd) Adjust pix decoder and a firewall rule PR#1749
+(binrush) Fixed missing same_source_ip in rule 11306 PR#1751 pureftpd
+(ddpbsd) Addition to sshd rule, new ntpd rule PR#1757, 
+(ddpbsd) Fix rule IDs PR#1760 -  openbsd_rules
+
+
+General
+(ddpbsd) syscheck, Try to silence the "Attempted to check FS status for" message. PR#1701
+(ddpbsd) syscheck, Add some basic error handling to syscheck_control PR#1702
+(ddpbsd) core, More unlink and fopen error handling in src/util PR#1703 
+(almirb) active-response,Added Cloudflare active-response script. PR#1709
+(Varstahl) cyslogd, csyslogd CEF – Remove duplicate parameters and fix discarded hashes PR#1713
+(atomicturtle) - docs, Updating links, using https, conference links PR#1714
+(Varstahl) cyslogd, Fix: csyslogd – CEF escaping / multi-line syslog 
+(ddpbsd) core, Check return values for unlink(2) calls PR#1733 
+(mikeroyal) packaging, snap build support PR#1737
+(ddpbsd) core, Set PCRE2_SYSTEM to no by default. PR#1738
+(ddpbsd) logtest, Remove leading space from field names PR#1741
+(bchavet) analysisd, Verify Googlebot PR#1752 , this is a code function in generic_samples.c
+(ddpbsd) analysisd, Free the lf->fields memory. PR#1758, fixes issue #1727
+(ddpbsd) testing, Update some travis-ci bits PR#1759 - travis fixes
+
+
+
 OSSEC changelog (3.3.0) <scott@atomicorp.com>
 
 Release Maintainers
