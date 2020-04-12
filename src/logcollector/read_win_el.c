@@ -131,7 +131,7 @@ char *el_getEventDLL(char *evt_name, char *source, char *event)
 
     /* Open Registry */
     if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyname, 0,
-                     KEY_ALL_ACCESS, &key) != ERROR_SUCCESS) {
+                     KEY_ALL_ACCESS|KEY_WOW64_64KEY, &key) != ERROR_SUCCESS) {
         return (NULL);
     }
 
