@@ -70,18 +70,18 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT Message, WPARAM wParam,
             AppendMenu(hSubMenu, menuflags, UI_MENU_MANAGE_STATUS, "&Status");
             AppendMenu(hSubMenu, MF_SEPARATOR, UI_MENU_NONE, "");
             AppendMenu(hSubMenu, MF_STRING, UI_MENU_MANAGE_EXIT, "&Exit");
-            AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&Manage");
+            AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT_PTR)hSubMenu, "&Manage");
 
             /* Create view menu */
             hSubMenu = CreatePopupMenu();
             AppendMenu(hSubMenu, MF_STRING, UI_MENU_VIEW_LOGS, "&View Logs");
             AppendMenu(hSubMenu, MF_STRING, UI_MENU_VIEW_CONFIG, "V&iew Config");
-            AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&View");
+            AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT_PTR)hSubMenu, "&View");
 
             hSubMenu = CreatePopupMenu();
             AppendMenu(hSubMenu, MF_STRING, UI_MENU_HELP_ABOUT, "A&bout");
             AppendMenu(hSubMenu, MF_STRING, UI_MENU_HELP_HELP, "Help");
-            AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&Help");
+            AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT_PTR)hSubMenu, "&Help");
 
 
             AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
