@@ -30,7 +30,6 @@ USE_ZEROMQ?=no
 USE_GEOIP?=no
 USE_INOTIFY=no
 USE_PCRE2_JIT=yes
-USE_LIBTLS?=no
 
 ifneq (${TARGET},winagent)
 	USE_OPENSSL?=auto

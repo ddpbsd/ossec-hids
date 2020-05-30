@@ -35,7 +35,6 @@ typedef struct _MailConfig {
     char *idsname;
     char *smtpserver;
     char *heloserver;
-    char *ca_file;
 
     /* Granular e-mail options */
     unsigned int *gran_level;

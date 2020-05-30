@@ -500,7 +500,6 @@ int Read_Global(XML_NODE node, void *configp, void *mailp)
                 os_strdup(node[i]->content, Mail->ca_file);
             }
         }
-
 #ifdef LIBGEOIP_ENABLED
         /* GeoIP v4 DB location */
         else if (strcmp(node[i]->element, xml_geoip_db_path) == 0) {
