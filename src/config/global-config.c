@@ -491,9 +491,13 @@ int Read_Global(XML_NODE node, void *configp, void *mailp)
             }
         } else if (strcmp(node[i]->element, xml_use_tls) == 0) {
             if (Mail) {
+#ifdef USE_LIBTLS
                 if (strncmp(node[i]->content, "yes", 3) == 0) {
                     Mail->smtp_use_tls = 1;
                 }
+#else //USE_LIBTLS
+                merror("%s: ERROR: smtp_use_tls set but libtls support is missing.", __local_name);
+#endif //USE_LIBTLS
             }
         } else if (strcmp(node[i]->element, xml_ca_file) == 0) {
             if (Mail) {

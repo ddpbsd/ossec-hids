@@ -330,13 +330,9 @@ bzero(&tls_msg, 1024);
                 merror("%s: ERROR: Cannot tls_read MAILFROM", ARGV0);
                 close(os_sock);
                 return(OS_INVALID);
-            } else {
-                merror("XXX HELP %s", tls_msg);
             }
             if ((!OS_Match(VALIDMAIL, tls_msg))) {
                 merror(FROM_ERROR);
-                merror("XXX msg: %s", tls_msg);
-
                 close(os_sock);
                 return(OS_INVALID);
             }
