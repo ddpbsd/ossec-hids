@@ -317,9 +317,11 @@ bzero(&tls_msg, 1024);
         if (istls == 1) {
             if ((tls_write(ctx, snd_msg, strnlen(snd_msg, 1024))) == -1) {
                 merror(FROM_ERROR);
+/*
                 if (msg) {
                     free(msg);
                 }
+*/
                 close(os_sock);
                 return(OS_INVALID);
             }
