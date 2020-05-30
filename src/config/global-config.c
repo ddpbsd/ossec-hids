@@ -499,10 +499,12 @@ int Read_Global(XML_NODE node, void *configp, void *mailp)
                 merror("%s: ERROR: smtp_use_tls set but libtls support is missing.", __local_name);
 #endif //USE_LIBTLS
             }
+#ifdef USE_LIBTLS
         } else if (strcmp(node[i]->element, xml_ca_file) == 0) {
             if (Mail) {
                 os_strdup(node[i]->content, Mail->ca_file);
             }
+#endif //USE_LIBTLS
         }
 #ifdef LIBGEOIP_ENABLED
         /* GeoIP v4 DB location */
