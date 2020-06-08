@@ -37,6 +37,11 @@ static void help_tls_remoted(void) {
 
 
 int main(int argc, char **argv) {
+
+#ifdef __OpenBSD__
+    setproctitle("[main]");
+#endif
+
     int c;
 
 
