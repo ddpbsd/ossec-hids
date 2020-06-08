@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include <signal.h>
 #include <errno.h>
+#include <err.h>
 
 #include <netdb.h>
 #include <netinet/in.h>
@@ -27,8 +28,8 @@ char *ruser = "ossec";
 char *rgroup = "ossec";
 char *rpath = "/var/ossec";
 
-static void help_tls_remoted(void) __attribute__((noreturn));
 
+static void help_tls_remoted(void) __attribute__((noreturn));
 static void help_tls_remoted(void) {
     printf("Blah blah\n");
     exit(1);
@@ -59,17 +60,18 @@ int main(int argc, char **argv) {
 
 
     /* Signal work */
+    os_signal();
 
     /* Setup imsg */
-    struct imsgbuf osremoted_ibuf;
+    struct imsgbuf os_remoted_ibuf, os_remoted_ibuf_server;
     int imsg_fds[2];
     if ((socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, imsg_fds)) == -1) {
         err(1, "Could not create socket pair: ");
     }
-    if (setnonblock(imsg_fds[0]) < 0) {
+    if (tls_setnonblock(imsg_fds[0]) < 0) {
         err(1, "Could not set imsg_fds[0] to nonblock");
     }
-    if (setnonblock(imsg_fds[1]) < 0) {
+    if (tls_setnonblock(imsg_fds[1]) < 0) {
         err(1, "Could not set imsg_fds[1] to nonblock");
     }
 
@@ -80,7 +82,7 @@ int main(int argc, char **argv) {
         case 0:
             close(imsg_fds[0]);
             imsg_init(&os_remoted_ibuf, imsg_fds[1]);
-            exit(run_proc(&os_remoted_ibuf);
+            exit(os_run_proc(&os_remoted_ibuf));
      }
 
 
@@ -94,3 +96,4 @@ int main(int argc, char **argv) {
 
 
 #endif	//WIN32
+
