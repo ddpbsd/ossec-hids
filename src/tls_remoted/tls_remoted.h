@@ -9,6 +9,8 @@ struct config {
 	char *group_name;
 	uid_t uid;
 	gid_t gid;
+	char *chroot_dir_main;
+	char *chroot_dir_sub;
 	struct imsgbuf os_remoted_ibuf;
 	struct imsgbuf os_remoted_ibuf_server;
 };
@@ -17,6 +19,6 @@ struct config {
 void os_signal();
 int tls_setnonblock(int fd);
 int os_run_proc(struct config *rconfig);
-
+int os_run_main(struct config *rconfig, struct imsgbuf os_remoted_ibuf_server);
 
 #endif //WIN32

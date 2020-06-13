@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
 
     /* Configuration */
     struct config rconfig;
+    rconfig.chroot_dir_main = "/var/ossec/empty";
 
     /* Get uid/gid */
     /* XXX using ossecr and ossec for now */
@@ -110,21 +111,54 @@ int main(int argc, char **argv) {
 
     /* Fork child processes */
     switch(fork()) {
-        case -1:
-            err(1, "Could not fork ");
-        case 0:
-            close(imsg_fds[0]);
-            imsg_init(&rconfig.os_remoted_ibuf, imsg_fds[1]);
-            exit(os_run_proc(&rconfig));
-     }
+       case -1:
+           err(1, "Could not fork ");
+       case 0:
+           close(imsg_fds[0]);
+           imsg_init(&rconfig.os_remoted_ibuf, imsg_fds[1]);
+           exit(os_run_proc(&rconfig));
+    }
 
 
-     /* Setup imsg for the main process */
-     close(imsg_fds[1]);
-     imsg_init(&os_remoted_ibuf_server, imsg_fds[0]);
+    /* Setup imsg for the main process */
+    close(imsg_fds[1]);
+    imsg_init(&os_remoted_ibuf_server, imsg_fds[0]);
 
-     /* Priviledge separation */
+    /* chroot */
+    if ((chdir(rconfig.chroot_dir_main)) == -1) {
+        printf("chdir failed: %s\n", strerror(errno));
+        exit(errno);
+    }
+    if ((chroot(rconfig.chroot_dir_main)) == -1) {
+        printf("chroot failed: %s\n", strerror(errno));
+        exit(errno);
+    }
+    if ((chdir("/")) == -1) {
+        printf("chdir failed: %s\n", strerror(errno));
+        exit(errno);
+    }
 
+
+    /* Priviledge separation */
+    if ((setgid(rconfig.gid)) == -1) {
+        printf("setgid failed: %s\n", strerror(errno));
+        exit(1);
+    }
+    if ((setuid(rconfig.uid)) == -1) {
+        printf("setuid failed: %s\n", strerror(errno));
+        exit(1);
+    }
+
+    /* end of upkeep, go to main phase */
+    printf("whew! that was rough!\n");
+    char *buf;
+    printf("I am: %u/%u, and I am in %s\n", getuid(), geteuid(), getcwd(buf, 128));
+    free(buf);
+
+
+    /* Do stuff */
+    int orm = os_run_main(&rconfig, os_remoted_ibuf_server);
+    return(0);
 }
 
 
