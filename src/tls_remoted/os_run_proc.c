@@ -8,6 +8,12 @@
 
 #include "tls_remoted.h"
 
+
+/* First process to decrypt the tls packets
+ * will then send the data to the next process
+ * for processing
+ */
+
 int os_run_proc(struct config *rconfig) {
 
 #ifdef __OpenBSD__
