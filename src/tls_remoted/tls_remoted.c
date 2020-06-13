@@ -11,6 +11,8 @@
 #include <signal.h>
 #include <errno.h>
 #include <err.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include <netdb.h>
 #include <netinet/in.h>
@@ -27,7 +29,6 @@ int tr_debug = 0;
 char *ruser = "ossec";
 char *rgroup = "ossec";
 char *rpath = "/var/ossec";
-
 
 static void help_tls_remoted(void) __attribute__((noreturn));
 static void help_tls_remoted(void) {
@@ -63,6 +64,30 @@ int main(int argc, char **argv) {
         printf("Starting.\n");
     }
 
+    /* Configuration */
+    struct config rconfig;
+
+    /* Get uid/gid */
+    /* XXX using ossecr and ossec for now */
+    rconfig.user_name = "ossecr";
+    rconfig.group_name = "ossec";
+    struct passwd *pw;
+    pw = getpwnam(rconfig.user_name);
+    if (pw == NULL) {
+        printf("getpwnam failed.\n");
+        exit(1);
+    } else {
+        rconfig.uid = pw->pw_uid;
+    }
+    struct group *grp;
+    grp = getgrnam(rconfig.group_name);
+    if (grp == NULL) {
+        printf("getgrnam failed.\n");
+        exit(1);
+    } else {
+        rconfig.gid = grp->gr_gid;
+    }
+
 
     /* Signal work */
     os_signal();
@@ -80,14 +105,17 @@ int main(int argc, char **argv) {
         err(1, "Could not set imsg_fds[1] to nonblock");
     }
 
+
+
+
     /* Fork child processes */
     switch(fork()) {
         case -1:
             err(1, "Could not fork ");
         case 0:
             close(imsg_fds[0]);
-            imsg_init(&os_remoted_ibuf, imsg_fds[1]);
-            exit(os_run_proc(&os_remoted_ibuf));
+            imsg_init(&rconfig.os_remoted_ibuf, imsg_fds[1]);
+            exit(os_run_proc(&rconfig));
      }
 
 

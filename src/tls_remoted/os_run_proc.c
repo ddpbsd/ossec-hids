@@ -6,7 +6,9 @@
 #include <stdint.h>
 #include <imsg.h>
 
-int os_run_proc(struct imsgbuf *osremoted_ibuf) {
+#include "tls_remoted.h"
+
+int os_run_proc(struct config *rconfig) {
 
 #ifdef __OpenBSD__
     setproctitle("[os_run_proc]");
