@@ -14,11 +14,15 @@ struct config {
 	struct imsgbuf os_remoted_ibuf_server;
 };
 
+enum imsg_type {
+	CONN
+};
 
 void os_signal();
 int tls_setnonblock(int fd);
 int os_run_proc(struct config *rconfig);
 int os_run_main(struct config *rconfig, struct imsgbuf os_remoted_ibuf_server);
 void os_main_accept(int fd, short ev, void *arg);
+int os_bindport2(char *port, const char *ip);
 
 #endif //WIN32

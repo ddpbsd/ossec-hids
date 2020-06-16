@@ -32,8 +32,24 @@ int os_run_main(struct config *rconfig, struct imsgbuf imsg_remoted_ibuf_server)
 
     int ossock;
 
+    /* Try to re-use as much of os_bindport() as possible without
+     * going crazy.
+     */
+    ossock = os_bindport2("1514", "127.0.0.1");
+    if (ossock == -1) {
+        /* XXX error */
+        exit(1);
+    }
+    if ((listen(ossock, 32)) == -1) {
+        /* XXX error listen */
+        close(ossock);
+        exit(errno);
+    }
 
-
+    if ((tls_setnonblock(ossock)) == -1) {
+        /* XXX setnonblock error */
+        exit(1);
+    }
 
     /* libevent */
     struct event_base *eb;
@@ -54,7 +70,40 @@ int os_run_main(struct config *rconfig, struct imsgbuf imsg_remoted_ibuf_server)
     return(0);
 }
 
+/* Accept the connection and pass it to os_run_proc()
+ * where it will be tls decrypted and the message passed
+ * to another process for processing.
+ */
 void os_main_accept(int fd, short ev, void *arg) {
+
+    struct imsgbuf *ibuf;
+    ssize_t n, datalen;
+
+    ibuf = (struct imsgbuf *)arg;
+
+    struct sockaddr_storage client;
+    socklen_t clientlen;
+    memset(&client, 0, sizeof(client));
+    clientlen = sizeof(client);
+
+    int ossock = accept(fd, (struct sockaddr *) &client, &clientlen);
+    if (ossock == -1) {
+        /* XXX accept error */
+        return;
+    }
+
+    int rc, data;
+    data = 42;
+    rc = imsg_compose(ibuf, CONN, 0, 0, ossock, &data, sizeof(&data));
+    if (rc == -1) {
+        /* XXX imsg_compose() error */
+        return;
+    }
+    if ((n = msgbuf_write(&ibuf->w) == -1) && (errno != EAGAIN)) {
+        /* XXX msgbuf_write() error */
+        return;
+    }
+
     return;
 }
 

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/queue.h>
 #include <sys/uio.h>
@@ -20,5 +21,6 @@ int os_run_proc(struct config *rconfig) {
     setproctitle("[os_run_proc]");
 #endif
 
+    sleep(100);
     return(0);
 }
