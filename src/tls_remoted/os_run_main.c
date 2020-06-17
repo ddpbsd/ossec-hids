@@ -99,10 +99,6 @@ void os_main_accept(int fd, short ev, void *arg) {
         /* XXX imsg_compose() error */
         return;
     }
-    if ((n = msgbuf_write(&ibuf->w) == -1) && (errno != EAGAIN)) {
-        /* XXX msgbuf_write() error */
-        return;
-    }
 
     return;
 }
