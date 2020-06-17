@@ -157,13 +157,6 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
             merror("%s: ERROR: imsg_compose() error: %s", ARGV0, strerror(errno));
         }
 
-        if ((n = msgbuf_write(&mail->ibuf.w)) == -1 && errno != EAGAIN) {
-            merror("%s: ERROR: msgbuf_write() error: %s", ARGV0, strerror(errno));
-        }
-        if (n == 0) {
-            //debug2("%s: INFO: (write) n == 0", ARGV0);
-        }
-
         event_dispatch();
 
         if (os_sock <= 0) {
