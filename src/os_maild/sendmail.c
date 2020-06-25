@@ -93,9 +93,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
             merror("ossec-maild [OS_Sendmail]: ERROR: imsg_flush() failed.");
         }
 
-        debug1("ossec-maild [OS_Sendmail]: DEBUG: event_dispatch()ing");
-
-        sleep(2);
+        sleep(1);
         ssize_t m;
         while ((m = imsg_read(&mail->ibuf)) == 0) {
             // Loop here until something happens
@@ -113,8 +111,6 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         if (m == -1) {
             merror("%s [OS_Sendmail]: ERROR: imsg_get error");
         }
-
-        debug1("ossec-maild [OS_Sendmail]: DEBUG: post event_dispatch()");
 
         switch(imsg.hdr.type) {
             case DNS_RESP:

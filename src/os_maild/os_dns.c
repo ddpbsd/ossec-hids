@@ -202,7 +202,6 @@ int maild_osdns(struct imsgbuf *ibuf, char *os_name, MailConfig mail) {
     event_set(&ev_accept, ibuf->fd, EV_READ|EV_PERSIST, osdns_accept, ibuf);
     event_add(&ev_accept, NULL);
 
-    debug1("[os_dns] DEBUG: event_dispatch()ing");
     event_dispatch();
 
 
