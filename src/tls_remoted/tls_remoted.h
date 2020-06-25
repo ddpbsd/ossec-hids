@@ -16,6 +16,8 @@ struct config {
     char *server_cert;
     struct imsgbuf os_remoted_ibuf;
     struct imsgbuf os_remoted_ibuf_server;
+    struct tls *ctx;
+    struct proc_config *pconfig;
 };
 
 struct proc_config {

@@ -59,7 +59,6 @@ int os_run_proc(struct config *rconfig) {
 
     /* Setup the libtls stuff */
 
-    struct proc_config pconfig;
     uint8_t *mem;
     size_t mem_len;
 
@@ -69,8 +68,8 @@ int os_run_proc(struct config *rconfig) {
         return(-1);
     }
 
-    pconfig.cfg = tls_config_new();
-    if (pconfig.cfg == NULL) {
+    rconfig->pconfig->cfg = tls_config_new();
+    if (rconfig->pconfig->cfg == NULL) {
         /* config failed */
         return(-1);
     }
@@ -80,16 +79,41 @@ int os_run_proc(struct config *rconfig) {
         /* load ca file err */
         printf("tls_load_file failed\n");
         return(-1);
-    } else
-        printf("SUCCESS 1\n");
-    if (tls_config_set_ca_mem(pconfig.cfg, mem, mem_len) != 0) {
+    }
+    if (tls_config_set_ca_mem(rconfig->pconfig->cfg, mem, mem_len) != 0) {
         /* config set ca err */
         printf("tls_config_set_ca_mem() failed\n");
         return(-1);
-    } else
-        printf("SUCCESS 2\n");
+    }
 
+    /* Set the server cert */
+    if ((mem = tls_load_file("/etc/CA/server.lab.wafflelab.online.crt", &mem_len, NULL)) == NULL) {
+        printf("XXX server cert error\n");
+        return(-1);
+    }
+    if (tls_config_set_cert_mem(rconfig->pconfig->cfg, mem, mem_len) != 0) {
+        printf("XXX server cert error2\n");
+        return(-1);
+    }
+    /* Set the server key */
+    if ((mem = tls_load_file("/etc/CA/server.lab.wafflelab.online.key", &mem_len, "")) == NULL) {
+        printf("XXX server key error\n");
+        return(-1);
+    }
+    if (tls_config_set_key_mem(rconfig->pconfig->cfg, mem, mem_len) != 0) {
+        printf("XXX server key error2\n");
+        return(-1);
+    }
 
+    /* Setup the ctx */
+    if ((rconfig->pconfig->ctx = tls_server()) == NULL) {
+        printf("XXX tls_server() error\n");
+        return(-1);
+    }
+    if (tls_configure(rconfig->pconfig->ctx, rconfig->pconfig->cfg) != 0) {
+        printf("XXX tls_configure error\n");
+        return(-1);
+    }
 
     /* event it */
     struct event_base *eb;
@@ -102,7 +126,7 @@ int os_run_proc(struct config *rconfig) {
     int test = 42;
 
     struct event ev_accept;
-    event_set(&ev_accept, rconfig->os_remoted_ibuf.fd, EV_READ|EV_PERSIST, os_proc_accept, &pconfig);
+    event_set(&ev_accept, rconfig->os_remoted_ibuf.fd, EV_READ|EV_PERSIST, os_proc_accept, &rconfig->pconfig);
 
     event_add(&ev_accept, NULL);
     event_dispatch();
@@ -113,6 +137,9 @@ int os_run_proc(struct config *rconfig) {
 }
 
 void os_proc_accept(int fd, short ev, void *arg) {
+
+    struct config *rconfig = arg;
+
     return;
 }
 
