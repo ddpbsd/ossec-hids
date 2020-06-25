@@ -170,7 +170,7 @@ void os_proc_accept(int fd, short ev, void *arg) {
                 break;
         }
 
-        tls_accept_fds()
+        tls_accept_socket(rconfig.pconfig.ctx, SOMETHING_ELSE, sock)
 
 
 
