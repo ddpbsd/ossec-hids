@@ -309,6 +309,7 @@ static void OS_Run(MailConfig *mail)
             } else if (pid == 0) {
                 if (OS_Sendmail(mail, p) < 0) {
                     merror(SNDMAIL_ERROR, ARGV0, mail->smtpserver);
+                    merror("SNDMAIL_ERROR 1");
                     errcnt++;
                     if (errcnt > 5) {
                         ErrorExit("%s: ERROR: Too many failures. Exiting.", ARGV0);
@@ -433,6 +434,7 @@ snd_check_hour:
                 if (p_status != 0) {
                     merror(CHLDWAIT_ERROR, ARGV0, p_status);
                     merror(SNDMAIL_ERROR, ARGV0, mail->smtpserver);
+                    merror("SNDMAIL_ERROR 2");
                     n_errs++;
                 }
                 childcount--;
@@ -442,6 +444,7 @@ snd_check_hour:
             if (n_errs > 6) {
                 merror(TOOMANY_WAIT_ERROR, ARGV0);
                 merror(SNDMAIL_ERROR, ARGV0, mail->smtpserver);
+                merror("SNDMAIL_ERROR 3");
                 exit(1);
             }
         }
