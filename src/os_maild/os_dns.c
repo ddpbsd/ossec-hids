@@ -39,6 +39,8 @@ void osdns_accept(int fd, short ev, void *arg) {
     /* sssssssh */
     if (fd) { }
 
+    debug1("ossec-maild: [dns]: DEBUG: osdns_accept()");
+
     /* We have a request from ossec-maild */
     ssize_t n, datalen;
     struct imsg imsg;
@@ -47,6 +49,8 @@ void osdns_accept(int fd, short ev, void *arg) {
     if (ev & EV_READ) {
         if ((n = imsg_read(ibuf)) == -1 && errno != EAGAIN) {
             ErrorExit("%s [dns]: ERROR: imsg_read() failed: %s", dname, strerror(errno));
+        } else {
+            debug1("ossec-maild: [dns]: DEBUG: EV_READ %d", n);
         }
         if (n == 0) {
             debug2("%s [dns]: DEBUG: n == 0", dname);
@@ -76,6 +80,7 @@ void osdns_accept(int fd, short ev, void *arg) {
              * osdns() sends back a socket to the connection to the smtp_server
              */
             case DNS_REQ:
+                debug1("ossec-maild: [dns]: DEBUG: DNS_REQ");
                 sleep(1);
                 int idata = 42;
                 struct addrinfo hints, *result, *rp = NULL;
@@ -121,6 +126,8 @@ void osdns_accept(int fd, short ev, void *arg) {
                 if ((imsg_compose(ibuf, DNS_FAIL, 0, 0, -1, &os_dns_err, sizeof(&os_dns_err))) == -1) {
                     merror("%s [dns]: ERROR: imsg_compose(DNS_FAIL) failed.", dname);
                     return;
+                } else {
+                    debug1("ossec-maild: [dns]: DEBUG: DNS_FAIL sent");
                 }
             default:
                 merror("%s [dns]: ERROR: Unknown imsg type", dname);
@@ -152,6 +159,7 @@ int maild_osdns(struct imsgbuf *ibuf, char *os_name, MailConfig mail) {
     debug1("%s [dns]: INFO: Starting osdns", os_name);
 
     smtp_host = mail.smtpserver;
+    debug1("%s [dns]: DEBUG: smtp_host: %s", smtp_host);
 
     /* setuid() ossecm */
     /* This is static ossecm for now, I'll figure out the trick later */
