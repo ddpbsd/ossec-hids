@@ -139,6 +139,40 @@ int os_run_proc(struct config *rconfig) {
 void os_proc_accept(int fd, short ev, void *arg) {
 
     struct config *rconfig = arg;
+    ssize_t n;
+    int sock = 0;
+
+    if (ev & EV_READ) {
+        if ((n = imsg_read(rconfig.os_remoted_ibuf)) == -1 && errno != EAGAIN) {
+            printf("imsg_read() failed\n");
+            return;
+        }
+    } else {
+        printf("NOT EV_READ\n");
+        return;
+    }
+
+    struct imsg imsg;
+
+    for (;;) {
+        if ((n = imsg_get(rconfig.os_remoted_ibuf, &imsg)) == -1) {
+            printf("XXX imsg_get error \n");
+            return;
+        }
+        ssize_t datalen = imsg.hdr.len - IMSG_HEADER_SIZE;
+
+        switch(imsg.hdr.type) {
+            case CONN:
+                sock = imsg.fd;
+                break;
+            default:
+                printf("XXX DOES NOT COMPUTER\n");
+                break;
+        }
+
+        tls_accept_fds()
+
+
 
     return;
 }
