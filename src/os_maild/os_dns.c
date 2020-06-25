@@ -76,14 +76,6 @@ void osdns_accept(int fd, short ev, void *arg) {
              * osdns() sends back a socket to the connection to the smtp_server
              */
             case DNS_REQ:
-                /*
-                if (datalen != sizeof(dnsr)) {
-                    merror("%s [dns]: ERROR: DNS_REQ wrong length (%lu)", dname, datalen);
-                    int os_dns_err = 1;
-                    imsg_compose(ibuf, DNS_FAIL, 0, 0, -1, &os_dns_err, sizeof(&os_dns_err));
-                }
-                */
-
                 sleep(1);
                 int idata = 42;
                 struct addrinfo hints, *result, *rp = NULL;
@@ -99,7 +91,11 @@ void osdns_accept(int fd, short ev, void *arg) {
 
                     int os_dns_err = 1;
 
-                    imsg_compose(ibuf, DNS_FAIL, 0, 0, -1, &os_dns_err, sizeof(&os_dns_err));
+                    if ((imsg_compose(ibuf, DNS_FAIL, 0, 0, -1, &os_dns_err, sizeof(&os_dns_err))) ==-1) {
+                        merror("%s [dns]: ERROR: DNS_FAIL");
+                    }
+                    return;
+
                 }
 
                 sock = -1;
