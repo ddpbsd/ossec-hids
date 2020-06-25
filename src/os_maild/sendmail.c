@@ -84,13 +84,15 @@ void os_sendmail_cb(int fd, short ev, void *arg) {
         return;
     }
     if (n == 0) {
-        //debug2("%s: DEBUG: n == 0", ARGV0);
+        debug2("%s: DEBUG: n == 0", ARGV0);
         return;
     }
 
     switch(imsg.hdr.type) {
         case DNS_RESP:
+            debug1("ossec-maild [OS_Sendmail]: DEBUG: DNS_RESP");
             os_sock = imsg.fd;
+            debug1("ossec-maild [OS_Sendmail]: DEBUG: os_sock: %d", os_sock);
             break;
         case DNS_FAIL:
             merror("%s: ERROR: DNS failure for smtpserver", ARGV0);
@@ -113,6 +115,8 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
 #if __OpenBSD__
     setproctitle("[OS_Sendmail]");
 #endif
+
+    debug1("ossec-maild [OS_Sendmail]: DEBUG: OS_Sendmail()");
 
     FILE *sendmail = NULL;
     os_sock = -1;
@@ -194,11 +198,17 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         ssize_t n;
         int idata = 42;
 
+        debug1("ossec-maild [OS_Sendmail]: DEBUG: imsg_compose()ing");
+
         if ((imsg_compose(&mail->ibuf, DNS_REQ, 0, 0, -1, &idata, sizeof(idata))) == -1) {
             merror("%s: ERROR: imsg_compose() error: %s", ARGV0, strerror(errno));
         }
 
+        debug1("ossec-maild [OS_Sendmail]: DEBUG: event_dispatch()ing");
+
         event_dispatch();
+
+        debug1("ossec-maild [OS_Sendmail]: DEBUG: post event_dispatch()");
 
         if (os_sock <= 0) {
             //ErrorExit("ossec-maild: ERROR: No socket.");
