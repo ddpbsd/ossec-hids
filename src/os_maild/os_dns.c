@@ -39,8 +39,6 @@ void osdns_accept(int fd, short ev, void *arg) {
     /* sssssssh */
     if (fd) { }
 
-    merror("ossec-maild: [dns]: DEBUG: osdns_accept()");
-
     /* We have a request from ossec-maild */
     ssize_t n, datalen;
     struct imsg imsg;
@@ -67,13 +65,12 @@ void osdns_accept(int fd, short ev, void *arg) {
             return;
         }
         if (n == 0) {
-            debug2("%s [dns]: DEBUG: imsg_get() n == 0", dname);
+            //debug2("%s [dns]: DEBUG: imsg_get() n == 0", dname);
             return; /* No more messages */
         }
 
 
         datalen = imsg.hdr.len - IMSG_HEADER_SIZE;
-        merror("%s [dns]: INFO: XXX imsg type: %d", dname, imsg.hdr.type);
 
         switch(imsg.hdr.type) {
             /*
@@ -81,7 +78,6 @@ void osdns_accept(int fd, short ev, void *arg) {
              * osdns() sends back a socket to the connection to the smtp_server
              */
             case DNS_REQ:
-                debug1("ossec-maild: [dns]: DEBUG: DNS_REQ");
                 sleep(1);
                 int idata = 42;
                 struct addrinfo hints, *result, *rp = NULL;
@@ -140,7 +136,6 @@ void osdns_accept(int fd, short ev, void *arg) {
                     if ((msgbuf_write(&ibuf->w) == -1) && errno != EAGAIN) {
                         merror("msgbuf_write failed (2): %s", strerror(errno));
                     }
-                    debug1("ossec-maild: [dns]: DEBUG: DNS_FAIL sent (0)");
                 }
             default:
                 merror("%s [dns]: ERROR: Unknown imsg type: %d", dname, imsg.hdr.type);
