@@ -99,6 +99,10 @@ void os_main_accept(int fd, short ev, void *arg) {
         /* XXX imsg_compose() error */
         return;
     }
+    if ((imsg_flush(ibuf)) == -1) {
+        /* XXX imsg_flush() error */
+        return;
+    }
 
     return;
 }

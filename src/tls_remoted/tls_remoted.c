@@ -67,6 +67,7 @@ int main(int argc, char **argv) {
     /* Configuration */
     struct config rconfig;
     rconfig.chroot_dir_main = "/var/ossec/empty";
+    rconfig.chroot_dir_proc = "/var/ossec";
 
     /* Get uid/gid */
     /* XXX using ossecr and ossec for now */
