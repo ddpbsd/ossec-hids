@@ -9,8 +9,6 @@
 
 /* Basic e-mailing operations */
 
-#include <event.h>
-
 #include "shared.h"
 #include "os_net/os_net.h"
 #include "maild.h"
@@ -56,59 +54,6 @@
 int os_sock, istls;
 char tls_msg[1024];
 
-void os_sendmail_cb(int fd, short ev, void *arg) {
-
-    if (fd) { }
-    if (ev) {}
-
-
-    /* Have to get the *arg stuff */
-    ssize_t n;
-    struct imsg imsg;
-    struct imsgbuf *ibuf = (struct imsgbuf *)arg;
-
-    if ((n = imsg_read(ibuf) == -1 && errno != EAGAIN)) {
-        ErrorExit("%s: ERROR: imsg_read() failed: %s", ARGV0, strerror(errno));
-    }
-    if (n == 0) {
-        //debug2("%s: DEBUG: n == 0", ARGV0);
-        //return; //XXX
-    }
-    if (n == EAGAIN) {
-        merror("%s: DEBUG: n == EAGAIN (os_sendmail_cb())", ARGV0);
-        return; //XXX
-    }
-
-    if ((n = imsg_get(ibuf, &imsg)) == -1) {
-        merror("%s: ERROR: imsg_get() failed: %s", ARGV0, strerror(errno));
-        return;
-    }
-    if (n == 0) {
-        debug2("%s: DEBUG: n == 0", ARGV0);
-        return;
-    }
-
-    switch(imsg.hdr.type) {
-        case DNS_RESP:
-            debug1("ossec-maild [OS_Sendmail]: DEBUG: DNS_RESP");
-            os_sock = imsg.fd;
-            debug1("ossec-maild [OS_Sendmail]: DEBUG: os_sock: %d", os_sock);
-            break;
-        case DNS_FAIL:
-            merror("%s: ERROR: DNS failure for smtpserver", ARGV0);
-            break;;
-        default:
-            merror("%s: ERROR Wrong imsg type.", ARGV0);
-            break;
-    }
-
-
-
-    return;
-}
-
-
-
 int OS_Sendmail(MailConfig *mail, struct tm *p)
 {
 
@@ -149,13 +94,6 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
     } else {
         /* Try to use os_dns =] */
 
-        /* setup the libevent stuff */
-        struct event_base *eb;
-        eb = event_init();
-        if (!eb) {
-            ErrorExit("%s: ERROR: event_init() failed.", ARGV0);
-        }
-
 #ifdef USE_LIBTLS
         if (mail->smtp_use_tls == 1) {
             merror("%s: DEBUG: Configuring tls", ARGV0);
@@ -186,32 +124,54 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         
 #endif //USE_LIBTLS
 
-        struct event ev_accept;
-        struct timeval event_tv;
-        event_tv.tv_sec = 10;
-        event_tv.tv_usec = 0;
-        event_set(&ev_accept, mail->ibuf.fd, EV_READ, os_sendmail_cb, &mail->ibuf);
-        if ((event_add(&ev_accept, &event_tv)) == -1) {
-            merror("%s [OS_Sendmail]: ERROR: event_add error: %s", ARGV0, strerror(errno));
-        }
-
         ssize_t n;
         int idata = 42;
-
-        debug1("ossec-maild [OS_Sendmail]: DEBUG: imsg_compose()ing");
 
         if ((imsg_compose(&mail->ibuf, DNS_REQ, 0, 0, -1, &idata, sizeof(idata))) == -1) {
             merror("%s: ERROR: imsg_compose() error: %s", ARGV0, strerror(errno));
         }
+        if ((imsg_flush(&mail->ibuf)) == -1) {
+            merror("ossec-maild [OS_Sendmail]: ERROR: imsg_flush() failed.");
+        }
 
         debug1("ossec-maild [OS_Sendmail]: DEBUG: event_dispatch()ing");
 
-        event_dispatch();
+        sleep(2);
+        ssize_t m;
+        while ((m = imsg_read(&mail->ibuf)) == 0) {
+            // Loop here until something happens
+        }
+        if (m == -1) {
+            if (errno != EAGAIN) {
+                merror("%s [OS_Sendmail]: ERROR: imsg_read error: %s", strerror(errno));
+            }
+        }
+
+        struct imsg imsg;
+        while ((m = imsg_get(&mail->ibuf, &imsg)) == 0) {
+            // Nothing really to do here, just keep doing nothing until it's done
+        }
+        if (m == -1) {
+            merror("%s [OS_Sendmail]: ERROR: imsg_get error");
+        }
 
         debug1("ossec-maild [OS_Sendmail]: DEBUG: post event_dispatch()");
 
+        switch(imsg.hdr.type) {
+            case DNS_RESP:
+                os_sock = imsg.fd;
+                break;
+            case DNS_FAIL:
+                merror("%s: ERROR: DNS failure for smtpserver", ARGV0);
+                return(OS_INVALID);
+                break;;
+            default:
+                merror("%s: ERROR Wrong imsg type. (%u)", ARGV0, imsg.hdr.type);
+                break;
+        }
+
+
         if (os_sock <= 0) {
-            //ErrorExit("ossec-maild: ERROR: No socket.");
             merror("ossec-maild: ERROR: No socket.");
             return (OS_INVALID);
         }
