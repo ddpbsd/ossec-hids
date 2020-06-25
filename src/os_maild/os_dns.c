@@ -76,26 +76,6 @@ void osdns_accept(int fd, short ev, void *arg) {
              * osdns() sends back a socket to the connection to the smtp_server
              */
             case DNS_REQ:
-                /*
-                if (datalen != sizeof(dnsr)) {
-                    merror("%s [dns]: ERROR: DNS_REQ wrong length (%lu)", dname, datalen);
-                    int os_dns_err = 1;
-                    imsg_compose(ibuf, DNS_FAIL, 0, 0, -1, &os_dns_err, sizeof(&os_dns_err));
-                    if ((n = msgbuf_write(&ibuf->w) == -1) && errno != EAGAIN) {
-                        merror("%s [dns]: ERROR: msgbuf_write() failed (DNS_FAIL size): %s", dname, strerror(errno));
-                        return;
-                    }
-                    if (n == 0) {
-                        debug2("%s [dns]: DEBUG: DNS_FAIL size n == 0", dname);
-                        return;
-                    }
-                    if (n == EAGAIN) {
-                        debug2("%s [dns]: DEBUG EAGAIN size", dname);
-                        return;
-                    }
-                }
-                */
-
                 sleep(1);
                 int idata = 42;
                 struct addrinfo hints, *result, *rp = NULL;
@@ -111,18 +91,11 @@ void osdns_accept(int fd, short ev, void *arg) {
 
                     int os_dns_err = 1;
 
-                    imsg_compose(ibuf, DNS_FAIL, 0, 0, -1, &os_dns_err, sizeof(&os_dns_err));
-                    if ((n = msgbuf_write(&ibuf->w) == -1) && errno != EAGAIN) {
-                        merror("%s [dns]: ERROR: msgbuf_write() failed (DNS_FAIL): %s", dname, strerror(errno));
+                    if ((imsg_compose(ibuf, DNS_FAIL, 0, 0, -1, &os_dns_err, sizeof(&os_dns_err))) ==-1) {
+                        merror("%s [dns]: ERROR: DNS_FAIL");
                     }
-                    if (n == 0) {
-                        debug2("%s [dns]: DEBUG: DNS_FAIL n == 0", dname);
-                        return;
-                    }
-                    if (n == EAGAIN) {
-                        debug2("%s [dns]: DEBUG: EAGAIN 1", dname);
-                        return; //XXX
-                    }
+                    return;
+
                 }
 
                 sock = -1;
@@ -138,17 +111,6 @@ void osdns_accept(int fd, short ev, void *arg) {
                                 merror("%s [dns]: ERROR: DNS_RESP imsg_compose() failed: %s", dname, strerror(errno));
                                 freeaddrinfo(result);
                                 return;
-                            } else {
-                                if ((n = msgbuf_write(&ibuf->w) == -1) && errno != EAGAIN) {
-                                    merror("%s [dns]: ERROR: DNS_RESP msgbuf_write() failed: %s", dname, strerror(errno));
-                                    freeaddrinfo(result);
-                                    return;
-                                }
-                                if (n == 0) {
-                                    debug2("%s [dns]: DEBUG: DNS_RESP n == 0", dname);
-                                }
-                                freeaddrinfo(result);
-                                return;
                             }
                         }
                     }
@@ -160,31 +122,11 @@ void osdns_accept(int fd, short ev, void *arg) {
                     merror("%s [dns]: ERROR: imsg_compose(DNS_FAIL) failed.", dname);
                     return;
                 }
-                if ((n = msgbuf_write(&ibuf->w) == -1) && errno != EAGAIN) {
-                    merror("%s [dns]: ERROR: msgbuf_write() failed (DNS_FAIL): %s", dname, strerror(errno));
-                    return;
-                }
-                if (n == 0) {
-                    debug2("%s [dns]: DEBUG: DNS_FAIL n == 0", dname);
-                }
-                if (n == EAGAIN) {
-                    debug2("%s [dns]: DEBUG: EAGAIN 1", dname);
-                }
-                break;
             default:
                 merror("%s [dns]: ERROR: Unknown imsg type", dname);
                 if ((imsg_compose(ibuf, DNS_FAIL, 0, 0, -1, &idata, sizeof(idata))) == -1) {
                     merror("%s [dns]: ERROR: DNS_FAIL imsg_compose() failed: %s", dname, strerror(errno));
                     return;
-                } else {
-                    if ((n = msgbuf_write(&ibuf->w) == -1) && errno != EAGAIN) {
-                        merror("%s [dns]: ERROR: DNS_FAIL msgbuf_write failed: %s", dname, strerror(errno));
-                        return;
-                    }
-                    if (n == 0) {
-                        debug2("%s [dns]: DEBUG: DNS_FAIL n == 0", dname);
-                        return;
-                    }
                 }
                 return;
         }
