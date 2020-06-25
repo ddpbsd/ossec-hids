@@ -141,7 +141,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         }
         if (m == -1) {
             if (errno != EAGAIN) {
-                merror("%s [OS_Sendmail]: ERROR: imsg_read error: %s", strerror(errno));
+                merror("%s [OS_Sendmail]: ERROR: imsg_read error: %s", ARGV0, strerror(errno));
             }
         }
 
@@ -150,7 +150,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
             // Nothing really to do here, just keep doing nothing until it's done
         }
         if (m == -1) {
-            merror("%s [OS_Sendmail]: ERROR: imsg_get error");
+            merror("%s [OS_Sendmail]: ERROR: imsg_get error", ARGV0);
         }
 
         switch(imsg.hdr.type) {
