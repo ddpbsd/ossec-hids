@@ -111,7 +111,6 @@ void osdns_accept(int fd, short ev, void *arg) {
                         if (connect(sock, rp->ai_addr, rp->ai_addrlen) == -1) {
                             merror("%s [dns]: ERROR: connect() failed.", dname);
                         } else {
-                            merror("[dns] connect() successful.");
                             if ((imsg_compose(ibuf, DNS_RESP, 0, 0, sock, &idata, sizeof(idata))) == -1) {
                                 merror("%s [dns]: ERROR: DNS_RESP imsg_compose() failed: %s", dname, strerror(errno));
                                 freeaddrinfo(result);
