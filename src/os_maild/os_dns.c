@@ -39,7 +39,7 @@ void osdns_accept(int fd, short ev, void *arg) {
     /* sssssssh */
     if (fd) { }
 
-    debug1("ossec-maild: [dns]: DEBUG: osdns_accept()");
+    merror("ossec-maild: [dns]: DEBUG: osdns_accept()");
 
     /* We have a request from ossec-maild */
     ssize_t n, datalen;
@@ -50,7 +50,7 @@ void osdns_accept(int fd, short ev, void *arg) {
         if ((n = imsg_read(ibuf)) == -1 && errno != EAGAIN) {
             ErrorExit("%s [dns]: ERROR: imsg_read() failed: %s", dname, strerror(errno));
         } else {
-            debug1("ossec-maild: [dns]: DEBUG: EV_READ %d", n);
+            debug1("ossec-maild: [dns]: DEBUG: EV_READ %zd", n);
         }
         if (n == 0) {
             debug2("%s [dns]: DEBUG: n == 0", dname);
@@ -73,6 +73,7 @@ void osdns_accept(int fd, short ev, void *arg) {
 
 
         datalen = imsg.hdr.len - IMSG_HEADER_SIZE;
+        merror("%s [dns]: INFO: XXX imsg type: %d", dname, imsg.hdr.type);
 
         switch(imsg.hdr.type) {
             /*
@@ -97,13 +98,15 @@ void osdns_accept(int fd, short ev, void *arg) {
                     int os_dns_err = 1;
 
                     if ((imsg_compose(ibuf, DNS_FAIL, 0, 0, -1, &os_dns_err, sizeof(&os_dns_err))) ==-1) {
-                        merror("%s [dns]: ERROR: DNS_FAIL");
+                        merror("ossec-maild [dns]: ERROR: DNS_FAIL");
+                    }
+                    if (( msgbuf_write(&ibuf->w) == -1) && errno != EAGAIN) {
+                        merror("ossec-maild [dns]: ERROR: msgbuf_write failed (1): %s", strerror(errno));
                     }
                     return;
 
                 }
 
-                sock = -1;
                 for(rp = result; rp; rp = rp->ai_next) {
                     sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
                     if (sock == -1) {
@@ -112,8 +115,15 @@ void osdns_accept(int fd, short ev, void *arg) {
                         if (connect(sock, rp->ai_addr, rp->ai_addrlen) == -1) {
                             merror("%s [dns]: ERROR: connect() failed.", dname);
                         } else {
+                            merror("[dns] connect() successful.");
                             if ((imsg_compose(ibuf, DNS_RESP, 0, 0, sock, &idata, sizeof(idata))) == -1) {
                                 merror("%s [dns]: ERROR: DNS_RESP imsg_compose() failed: %s", dname, strerror(errno));
+                                freeaddrinfo(result);
+                                return;
+                            }
+                            if ((msgbuf_write(&ibuf->w) == -1) && errno != EAGAIN) {
+                                merror("msgbuf_write failed (2): %s", strerror(errno));
+                            } else {
                                 freeaddrinfo(result);
                                 return;
                             }
@@ -127,13 +137,19 @@ void osdns_accept(int fd, short ev, void *arg) {
                     merror("%s [dns]: ERROR: imsg_compose(DNS_FAIL) failed.", dname);
                     return;
                 } else {
-                    debug1("ossec-maild: [dns]: DEBUG: DNS_FAIL sent");
+                    if ((msgbuf_write(&ibuf->w) == -1) && errno != EAGAIN) {
+                        merror("msgbuf_write failed (2): %s", strerror(errno));
+                    }
+                    debug1("ossec-maild: [dns]: DEBUG: DNS_FAIL sent (0)");
                 }
             default:
-                merror("%s [dns]: ERROR: Unknown imsg type", dname);
+                merror("%s [dns]: ERROR: Unknown imsg type: %d", dname, imsg.hdr.type);
                 if ((imsg_compose(ibuf, DNS_FAIL, 0, 0, -1, &idata, sizeof(idata))) == -1) {
                     merror("%s [dns]: ERROR: DNS_FAIL imsg_compose() failed: %s", dname, strerror(errno));
                     return;
+                }
+                if ((msgbuf_write(&ibuf->w) == -1) && errno != EAGAIN) {
+                    merror("msgbuf_write failed (2): %s", strerror(errno));
                 }
                 return;
         }
@@ -159,7 +175,7 @@ int maild_osdns(struct imsgbuf *ibuf, char *os_name, MailConfig mail) {
     debug1("%s [dns]: INFO: Starting osdns", os_name);
 
     smtp_host = mail.smtpserver;
-    debug1("%s [dns]: DEBUG: smtp_host: %s", smtp_host);
+    debug1("ossec-maild [dns]: DEBUG: smtp_host: %s/%s",smtp_host, mail.smtpserver);
 
     /* setuid() ossecm */
     /* This is static ossecm for now, I'll figure out the trick later */
@@ -190,6 +206,8 @@ int maild_osdns(struct imsgbuf *ibuf, char *os_name, MailConfig mail) {
     struct event ev_accept;
     event_set(&ev_accept, ibuf->fd, EV_READ|EV_PERSIST, osdns_accept, ibuf);
     event_add(&ev_accept, NULL);
+
+    debug1("[os_dns] DEBUG: event_dispatch()ing");
     event_dispatch();
 
 

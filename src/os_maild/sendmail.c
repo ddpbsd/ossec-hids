@@ -56,6 +56,7 @@ void os_sendmail_cb(int fd, short ev, void *arg) {
     if (fd) { }
     if (ev) {}
 
+    merror("ossec-maild [OS_Sendmail]: DEBUG: in os_sendmail_cb()");
 
     /* Have to get the *arg stuff */
     ssize_t n;
@@ -93,7 +94,7 @@ void os_sendmail_cb(int fd, short ev, void *arg) {
             merror("%s: ERROR: DNS failure for smtpserver", ARGV0);
             break;;
         default:
-            merror("%s: ERROR Wrong imsg type.", ARGV0);
+            merror("%s: ERROR Wrong imsg type. (%u)", ARGV0, imsg.hdr.type);
             break;
     }
 
@@ -162,12 +163,77 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         if ((imsg_compose(&mail->ibuf, DNS_REQ, 0, 0, -1, &idata, sizeof(idata))) == -1) {
             merror("%s: ERROR: imsg_compose() error: %s", ARGV0, strerror(errno));
         }
+        /*
+        if ((n = msgbuf_write(&mail->ibuf.w) == -1) && errno != EAGAIN ) {
+            merror("msgbuf_write() failed (1): %s", strerror(errno));
+            return(OS_INVALID);
+        }
+        */
+        if ((imsg_flush(&mail->ibuf)) == -1) {
+            merror("ossec-maild [OS_Sendmail]: ERROR: imsg_flush() failed.");
+        }
 
         debug1("ossec-maild [OS_Sendmail]: DEBUG: event_dispatch()ing");
 
-        event_dispatch();
+        //event_dispatch();
+
+        sleep(2);
+        ssize_t m;
+        while ((m = imsg_read(&mail->ibuf)) == 0) {
+            // Loop here until something happens
+        }
+        if (m == -1) {
+            if (errno != EAGAIN) {
+                merror("XXX imsg_read error: %s", strerror(errno));
+            } else {
+                merror("XXX imsg_read error: %s", strerror(errno));
+            }
+        }
+
+        /*
+        if ((m = imsg_read(&mail->ibuf)) == -1 && errno != EAGAIN) {
+            merror("XXX imsg_read");
+        } else {
+            merror("XXX imsg_read errno: %d, %s", errno, strerror(errno));
+        }
+        */
+        struct imsg imsg;
+        /*
+        for (;;) {
+            if ((m = imsg_get(&mail->ibuf, &imsg)) == -1) {
+                merror("XXX imsg_get failed");
+            } else {
+                merror("XXX m == %zd", m);
+                continue;
+            }
+        }
+        */
+        while ((m = imsg_get(&mail->ibuf, &imsg)) == 0) {
+            // Nothing really to do here, just keep doing it
+        }
+        if (m == -1) {
+            merror("XXX imsg_get error");
+        } else {
+            merror("XXX m == %zd", m);
+        }
 
         debug1("ossec-maild [OS_Sendmail]: DEBUG: post event_dispatch()");
+
+        switch(imsg.hdr.type) {
+            case DNS_RESP:
+                debug1("ossec-maild [OS_Sendmail]: DEBUG: DNS_RESP");
+                os_sock = imsg.fd;
+                debug1("ossec-maild [OS_Sendmail]: DEBUG: os_sock: %d", os_sock);
+                break;
+            case DNS_FAIL:
+                merror("%s: ERROR: DNS failure for smtpserver", ARGV0);
+                return(OS_INVALID);
+                break;;
+            default:
+                merror("%s: ERROR Wrong imsg type. (%u)", ARGV0, imsg.hdr.type);
+                break;
+        }
+
 
         if (os_sock <= 0) {
             //ErrorExit("ossec-maild: ERROR: No socket.");
