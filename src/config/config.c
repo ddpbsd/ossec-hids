@@ -113,10 +113,12 @@ static int read_main_elements(const OS_XML *xml, int modules,
             if ((modules & CAR) && (ReadActiveResponses(chld_node, d1, d2) < 0)) {
                 goto fail;
             }
+/*
         } else if (strcmp(node[i]->element, osreports) == 0) {
             if ((modules & CREPORTS) && (Read_CReports(chld_node, d1, d2) < 0)) {
                 goto fail;
             }
+*/
         } else {
             merror(XML_INVELEM, __local_name, node[i]->element);
             goto fail;
