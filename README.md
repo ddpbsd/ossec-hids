@@ -1,3 +1,8 @@
+hids.one
+
+Based on OSSEC, basially here for me to break.
+
+
 OSSEC v3.6.0 Copyright (C) 2019 Trend Micro Inc.
 
 # Information about OSSEC 
