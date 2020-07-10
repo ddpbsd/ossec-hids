@@ -11,6 +11,9 @@
 #include "maild.h"
 #include "mail_list.h"
 
+#include "os_net/os_net.h"
+#include "os_dns.h"
+
 #ifndef ARGV0
 #define ARGV0 "ossec-maild"
 #endif
@@ -19,6 +22,8 @@
 unsigned int mail_timeout;
 unsigned int   _g_subject_level;
 char _g_subject[SUBJECT_SIZE + 2];
+
+static int errcnt = 0;
 
 /* Prototypes */
 static void OS_Run(MailConfig *mail) __attribute__((nonnull)) __attribute__((noreturn));
@@ -155,6 +160,38 @@ int main(int argc, char **argv)
         goDaemon();
     }
 
+#if __OpenBSD__
+    setproctitle("[main]");     
+#endif
+
+    /* Prepare environment for os_dns */
+    struct imsgbuf osdns_ibuf;
+    int imsg_fds[2];
+    if ((socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, imsg_fds)) == -1) {
+        ErrorExit("%s: ERROR: Could not create socket pair.", ARGV0);
+    }
+    if (setnonblock(imsg_fds[0]) < 0) {
+        ErrorExit("%s: ERROR: Cannot set imsg_fds[0] to nonblock", ARGV0);
+    }
+    if (setnonblock(imsg_fds[1]) < 0) {
+        ErrorExit("%s: ERROR: Cannot set imsg_fds[1] to nonblock", ARGV0);
+    }
+
+    /* Fork off the os_dns process */
+    pid_t dnspid = fork();
+    switch(dnspid) {
+        case -1:
+            ErrorExit("%s: ERROR: Cannot fork() os_dns process", ARGV0);
+        case 0:
+            close(imsg_fds[0]);
+            imsg_init(&osdns_ibuf, imsg_fds[1]);
+            exit(maild_osdns(&osdns_ibuf, ARGV0, mail));
+    }
+
+    /* Setup imsg for the rest of maild */
+    close(imsg_fds[1]);
+    imsg_init(&mail.ibuf, imsg_fds[0]);
+
     /* Privilege separation */
     if (Privsep_SetGroup(gid) < 0) {
         ErrorExit(SETGID_ERROR, ARGV0, group, errno, strerror(errno));
@@ -199,6 +236,8 @@ static void OS_Run(MailConfig *mail)
     MailMsg *msg;
     MailMsg *s_msg = NULL;
     MailMsg *msg_sms = NULL;
+
+    merror("%s: DEBUG: smtp_use_tls: %d", ARGV0, mail->smtp_use_tls);
 
     time_t tm;
     struct tm *p;
@@ -267,6 +306,13 @@ static void OS_Run(MailConfig *mail)
             } else if (pid == 0) {
                 if (OS_Sendmail(mail, p) < 0) {
                     merror(SNDMAIL_ERROR, ARGV0, mail->smtpserver);
+                    merror("SNDMAIL_ERROR 1");
+                    errcnt++;
+                    if (errcnt > 5) {
+                        ErrorExit("%s: ERROR: Too many failures. Exiting.", ARGV0);
+                    }
+                } else {
+                    errcnt = 0;
                 }
 
                 exit(0);
@@ -385,6 +431,7 @@ snd_check_hour:
                 if (p_status != 0) {
                     merror(CHLDWAIT_ERROR, ARGV0, p_status);
                     merror(SNDMAIL_ERROR, ARGV0, mail->smtpserver);
+                    merror("SNDMAIL_ERROR 2");
                     n_errs++;
                 }
                 childcount--;
@@ -394,6 +441,7 @@ snd_check_hour:
             if (n_errs > 6) {
                 merror(TOOMANY_WAIT_ERROR, ARGV0);
                 merror(SNDMAIL_ERROR, ARGV0, mail->smtpserver);
+                merror("SNDMAIL_ERROR 3");
                 exit(1);
             }
         }

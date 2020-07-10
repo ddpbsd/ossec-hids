@@ -30,6 +30,7 @@ USE_ZEROMQ?=no
 USE_GEOIP?=no
 USE_INOTIFY=no
 USE_PCRE2_JIT=yes
+USE_SYSTEMD?=yes
 
 ifneq (${TARGET},winagent)
 	USE_OPENSSL?=auto
@@ -65,8 +66,12 @@ OSSEC_LDFLAGS=${LDFLAGS} -lm
 ifneq (${TARGET},winagent)
 ifeq (${uname_S},Linux)
 		DEFINES+=-DINOTIFY_ENABLED
-#		DEFINES+=-DUSE_MAGIC
 		OSSEC_LDFLAGS+=-lpthread
+ifeq (${USE_SYSTEMD},yes)
+		DEFINES+=-DHAVE_SYSTEMD
+		OSSEC_LDFLAGS+=-lsystemd
+endif
+#		DEFINES+=-DUSE_MAGIC
 #		OSSEC_LDFLAGS+=-lmagic
 else
 ifeq (${uname_S},AIX)
@@ -240,13 +245,19 @@ endif # USE_ZEROMQ
 
 ifneq (,$(filter ${USE_GEOIP},auto yes y Y 1))
 	DEFINES+=-DLIBGEOIP_ENABLED
-	OSSEC_LDFLAGS+=-lGeoIP
+	OSSEC_LDFLAGS+=-lmaxminddb
+	OSSEC_CFLAGS+=-I/usr/include/x86_64-linux-gnu
 endif # USE_GEOIP
 
 ifneq (,$(filter ${USE_SQLITE},auto yes y Y 1))
 	DEFINES+=-DSQLITE_ENABLED
 	ANALYSISD_FLAGS="-lsqlite3"
 endif # USE_SQLITE
+
+ifneq (,$(filter ${USE_LIBTLS},auto yes y Y 1))
+	DEFINES+=-DUSE_LIBTLS
+	MAILD_CFLAGS+=-ltls
+endif # USE_LIBTLS
 
 MI :=
 PI :=
@@ -607,6 +618,8 @@ settings:
 	@echo "    USE_INOTIFY:      ${USE_INOTIFY}"
 	@echo "    USE_SQLITE:       ${USE_SQLITE}"
 	@echo "    USE_PCRE2_JIT:    ${USE_PCRE2_JIT}"
+	@echo "    USE_LIBTLS:       ${USE_LIBTLS}"
+	@echo "    USE_SYSTEMD:      ${USE_SYSTEMD}"
 	@echo "Mysql settings:"
 	@echo "    includes:         ${MI}"
 	@echo "    libs:             ${ML}"
@@ -917,10 +930,10 @@ os_maild_c := $(wildcard os_maild/*.c)
 os_maild_o := $(os_maild_c:.c=.o)
 
 os_maild/%.o: os_maild/%.c
-	${OSSEC_CC} ${OSSEC_CFLAGS} -DARGV0=\"ossec-maild\" -c $^ -o $@
+	${OSSEC_CC} ${OSSEC_CFLAGS} ${MAILD_CFLAGS} -DARGV0=\"ossec-maild\" -c $^ -o $@
 
 ossec-maild: ${os_maild_o} ${ossec_libs}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ${OSSEC_LDFLAGS} ${DNS_CFLAGS} ${COMPAT_FILES} -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${MAILD_CFLAGS} $^ ${OSSEC_LDFLAGS} ${DNS_CFLAGS} -levent ${COMPAT_FILES} -o $@
 
 #### os_dbd ##########
 

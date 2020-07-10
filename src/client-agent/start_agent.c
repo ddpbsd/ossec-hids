@@ -16,6 +16,9 @@
 int connect_server(int initial_id)
 {
     unsigned int attempts = 2;
+
+    extern agent *agt;
+
     int rc = initial_id;
 
     /* Checking if the initial is zero, meaning we have to
@@ -97,6 +100,8 @@ void start_agent(int is_startup)
     char buffer[OS_MAXSTR + 1];
     char cleartext[OS_MAXSTR + 1];
     char fmsg[OS_MAXSTR + 1];
+
+    extern agent *agt;
 
     memset(msg, '\0', OS_MAXSTR + 2);
     memset(buffer, '\0', OS_MAXSTR + 1);
@@ -188,4 +193,56 @@ void start_agent(int is_startup)
 
     return;
 }
+
+#ifndef WIN32
+/* Callback for the AGENT_REQ */
+void os_agent_cb(int fd, short ev, void *arg) {
+
+    /* Quiet a warning */
+    if (fd) { }
+
+    ssize_t n;
+    struct imsg imsg;
+    struct imsgbuf *ibuf = (struct imsgbuf *)arg;
+
+    extern agent *agt;
+
+    if (ev & EV_READ) {
+        if ((n = imsg_read(ibuf) == -1 && errno != EAGAIN)) {
+            ErrorExit("%s: ERROR: imsg_read() failed: %s", ARGV0, strerror(errno));
+        }
+        if (n == 0) {
+            debug1("%s: WARN: n == 0", ARGV0);
+        }
+        if (n == EAGAIN) {
+            debug1("%s: DEBUG: n == EAGAIN", ARGV0);
+        }
+    } else {
+        merror("%s: ERROR: not EV_READ", ARGV0);
+        return;
+    }
+    if ((n = imsg_get(ibuf, &imsg)) == -1) {
+        merror("%s: ERROR: imsg_get() failed: %s", ARGV0, strerror(errno));
+        return;
+    }
+    if (n == 0) {
+        debug1("%s: WARN2: n == 0", ARGV0);
+    }
+
+    switch(imsg.hdr.type) {
+        case DNS_RESP:
+            agt->sock = imsg.fd;
+            merror("%s: DEBUG: agt->sock: %d", ARGV0, agt->sock);
+            break;
+        case DNS_FAIL:
+            merror("%s: ERROR: DNS failure for server", ARGV0);
+            break;
+        default:
+            merror("%s: ERROR Wrong imsg type.", ARGV0);
+            break;
+    }
+
+    return;
+}
+#endif //WIN32
 
