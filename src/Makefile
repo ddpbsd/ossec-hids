@@ -256,7 +256,7 @@ endif # USE_SQLITE
 
 ifneq (,$(filter ${USE_LIBTLS},auto yes y Y 1))
 	DEFINES+=-DUSE_LIBTLS
-	MAILD_CFLAGS+=-ltls
+	MAILD_LDFLAGS+=-ltls
 endif # USE_LIBTLS
 
 MI :=
@@ -929,7 +929,7 @@ os_maild/%.o: os_maild/%.c
 	${OSSEC_CC} ${OSSEC_CFLAGS} ${MAILD_CFLAGS} -DARGV0=\"ossec-maild\" -c $^ -o $@
 
 ossec-maild: ${os_maild_o} ${ossec_libs}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${MAILD_CFLAGS} $^ ${OSSEC_LDFLAGS} ${DNS_CFLAGS} -levent ${COMPAT_FILES} -o $@
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${MAILD_CFLAGS} ${MAILD_LDFLAGS} $^ ${OSSEC_LDFLAGS} ${DNS_CFLAGS} -levent ${COMPAT_FILES} -o $@
 
 #### os_csyslogd #####
 
