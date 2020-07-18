@@ -9,6 +9,8 @@
 
 #include "shared.h"
 
+#define ARGV0 "ossec-reportd"
+
 /* Prototypes */
 static void help_reportd(void) __attribute__((noreturn));
 

@@ -49,6 +49,7 @@ src/rootcheck_control
 src/syscheck_control
 src/syscheck_update
 src/verify-agent-conf
+src/reportd/ossec-reportd
 
 
 # Eclipse files
