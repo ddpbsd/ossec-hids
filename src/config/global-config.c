@@ -123,8 +123,8 @@ int Read_Global(XML_NODE node, void *configp, void *mailp)
     const char *xml_heloserver = "helo_server";
     const char *xml_mailmaxperhour = "email_maxperhour";
 
-#ifdef USE_LIBTLS
     const char *xml_use_tls = "smtp_use_tls";
+#ifdef USE_LIBTLS
     const char *xml_ca_file = "smtp_ca_file";
 #endif //USE_LIBTLS
 
