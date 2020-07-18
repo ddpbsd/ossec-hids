@@ -143,7 +143,7 @@ void os_proc_accept(int fd, short ev, void *arg) {
     int sock = 0;
 
     if (ev & EV_READ) {
-        if ((n = imsg_read(rconfig.os_remoted_ibuf)) == -1 && errno != EAGAIN) {
+        if ((n = imsg_read(&rconfig->os_remoted_ibuf)) == -1 && errno != EAGAIN) {
             printf("imsg_read() failed\n");
             return;
         }
@@ -155,7 +155,7 @@ void os_proc_accept(int fd, short ev, void *arg) {
     struct imsg imsg;
 
     for (;;) {
-        if ((n = imsg_get(rconfig.os_remoted_ibuf, &imsg)) == -1) {
+        if ((n = imsg_get(&rconfig->os_remoted_ibuf, &imsg)) == -1) {
             printf("XXX imsg_get error \n");
             return;
         }
@@ -170,7 +170,11 @@ void os_proc_accept(int fd, short ev, void *arg) {
                 break;
         }
 
-        tls_accept_socket(rconfig.pconfig.ctx, SOMETHING_ELSE, sock)
+        //tls_accept_socket(&rconfig->pconfig->ctx, SOMETHING_ELSE, sock);
+        /* Now that there is a socket, we should tls it */
+
+
+    }
 
 
 
