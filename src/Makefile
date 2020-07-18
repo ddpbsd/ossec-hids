@@ -503,7 +503,6 @@ install-server-generic: install-common
 	$(call INSTALL_CMD,0550,root,0) ossec-agentlessd ${PREFIX}/bin
 	$(call INSTALL_CMD,0550,root,0) ossec-analysisd ${PREFIX}/bin
 	$(call INSTALL_CMD,0550,root,0) ossec-monitord ${PREFIX}/bin
-	$(call INSTALL_CMD,0550,root,0) ossec-reportd ${PREFIX}/bin
 	$(call INSTALL_CMD,0550,root,0) ossec-maild ${PREFIX}/bin
 	$(call INSTALL_CMD,0550,root,0) ossec-remoted ${PREFIX}/bin
 	$(call INSTALL_CMD,0550,root,0) ossec-logtest ${PREFIX}/bin
@@ -647,7 +646,6 @@ BUILD_SERVER+=manage_agents
 BUILD_SERVER+=utils
 BUILD_SERVER+=ossec-syscheckd
 BUILD_SERVER+=ossec-monitord
-BUILD_SERVER+=ossec-reportd
 ifneq (,$(filter ${USE_OPENSSL},auto yes))
 BUILD_SERVER+=ossec-authd
 endif
@@ -1123,18 +1121,6 @@ monitord/%.o: monitord/%.c ${ZLIB_LIB}
 
 ossec-monitord: ${monitor_o} ${ossec_libs} ${ZLIB_LIB} ${JSON_LIB}
 	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${ZLIB_INCLUDE} $^ ${OSSEC_LDFLAGS} -o $@
-
-
-#### reportd #######
-
-report_c := reportd/report.c
-report_o := $(report_c:.c=.o)
-
-reportd/%.o: reportd/%.c
-	${OSSEC_CC} ${OSSEC_CFLAGS} -DARGV0=\"ossec-reportd\" -c $^ -o $@
-
-ossec-reportd: ${report_o} ${ossec_libs}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ${OSSEC_LDFLAGS} -o $@
 
 
 #### os_auth #######
