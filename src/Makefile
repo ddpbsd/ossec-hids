@@ -1410,7 +1410,6 @@ clean-internals:
 	rm -f ${os_execd_o} ossec-execd
 	rm -f ${os_logcollector_o} ${os_logcollector_eventchannel_o} ossec-logcollector
 	rm -f ${remoted_o} ossec-remoted
-	rm -f ${report_o} ossec-reportd
 	rm -f ${client_agent_o} ossec-agentd
 	rm -f ${addagent_o} manage_agents
 	rm -f ${util_o} ${util_programs}
