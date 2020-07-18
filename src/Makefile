@@ -508,7 +508,6 @@ install-server-generic: install-common
 	$(call INSTALL_CMD,0550,root,0) ossec-logtest ${PREFIX}/bin
 	$(call INSTALL_CMD,0550,root,0) ossec-csyslogd ${PREFIX}/bin
 	$(call INSTALL_CMD,0550,root,0) ossec-authd ${PREFIX}/bin
-	$(call INSTALL_CMD,0550,root,0) ossec-dbd ${PREFIX}/bin
 	$(call INSTALL_CMD,0550,root,0) ossec-makelists ${PREFIX}/bin
 	$(call INSTALL_CMD,0550,root,0) verify-agent-conf ${PREFIX}/bin/
 	$(call INSTALL_CMD,0550,root,0) clear_stats ${PREFIX}/bin/
@@ -652,7 +651,6 @@ endif
 BUILD_SERVER+=ossec-analysisd
 BUILD_SERVER+=ossec-logtest
 BUILD_SERVER+=ossec-makelists
-BUILD_SERVER+=ossec-dbd
 
 BUILD_AGENT+=external
 BUILD_AGENT+=ossec-agentd
@@ -932,18 +930,6 @@ os_maild/%.o: os_maild/%.c
 
 ossec-maild: ${os_maild_o} ${ossec_libs}
 	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${MAILD_CFLAGS} $^ ${OSSEC_LDFLAGS} ${DNS_CFLAGS} -levent ${COMPAT_FILES} -o $@
-
-#### os_dbd ##########
-
-os_dbd_c := $(wildcard os_dbd/*.c)
-os_dbd_o := $(os_dbd_c:.c=.o)
-
-os_dbd/%.o: os_dbd/%.c
-	${OSSEC_CC} ${OSSEC_CFLAGS} ${MI} ${PI} -DARGV0=\"ossec-dbd\" -c $^ -o $@
-
-ossec-dbd: ${os_dbd_o} ${ossec_libs}
-	${OSSEC_CCBIN} ${OSSEC_CFLAGS} ${MI} ${PI} ${JSON_INCLUDE} $^ -lm ${OSSEC_LDFLAGS} -o $@
-
 
 #### os_csyslogd #####
 
@@ -1405,7 +1391,6 @@ clean-internals:
 	rm -f ${os_maild_o} ossec-maild
 	rm -f ${crypto_o} os_crypto.a
 	rm -f ${os_csyslogd_o} ossec-csyslogd
-	rm -f ${os_dbd_o} ossec-dbd
 	rm -f ${os_agentlessd_o} ossec-agentlessd
 	rm -f ${os_execd_o} ossec-execd
 	rm -f ${os_logcollector_o} ${os_logcollector_eventchannel_o} ossec-logcollector
