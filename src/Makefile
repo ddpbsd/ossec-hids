@@ -259,83 +259,6 @@ ifneq (,$(filter ${USE_LIBTLS},auto yes y Y 1))
 	MAILD_LDFLAGS+=-ltls
 endif # USE_LIBTLS
 
-MI :=
-PI :=
-ifdef DATABASE
-
-	ifeq (${DATABASE},mysql)
-		DEFINES+=-DMYSQL_DATABASE_ENABLED
-
-		ifdef MYSQL_CFLAGS
-			MI = ${MYSQL_CFLAGS}
-		else
-			MI := $(shell sh -c '${MY_CONFIG} --include 2>/dev/null || echo ')
-
-			ifeq (${MI},) # BEGIN MI manual detection
-				ifneq (,$(wildcard /usr/include/mysql/mysql.h))
-					MI="-I/usr/include/mysql/"
-				else
-					ifneq (,$(wildcard /usr/local/include/mysql/mysql.h))
-						MI="-I/usr/local/include/mysql/"
-					endif  #
-				endif  #MI
-
-			endif
-		endif # MYSQL_CFLAGS
-
-		ifdef MYSQL_LIBS
-			ML = ${MYSQL_LIBS}
-		else
-			ML := $(shell sh -c '${MY_CONFIG} --libs 2>/dev/null || echo ')
-
-			ifeq (${ML},)
-				ifneq (,$(wildcard /usr/lib/mysql/*))
-					ML="-L/usr/lib/mysql -lmysqlclient"
-				else
-					ifneq (,$(wildcard /usr/lib64/mysql/*))
-						ML="-L/usr/lib64/mysql -lmysqlclient"
-					else
-						ifneq (,$(wildcard /usr/local/lib/mysql/*))
-							ML="-L/usr/local/lib/mysql -lmysqlclient"
-						else
-							ifneq (,$(wildcard /usr/local/lib64/mysql/*))
-								ML="-L/usr/local/lib64/mysql -lmysqlclient"
-							endif # local/lib64
-						endif # local/lib
-					endif # lib54
-				endif # lib
-			endif
-		endif # MYSQL_LIBS
-
-		OSSEC_LDFLAGS+=${ML}
-
-	else # DATABASE
-
-		ifeq (${DATABASE}, pgsql)
-			DEFINES+=-DPGSQL_DATABASE_ENABLED
-
-			ifneq (${PGSQL_LIBS},)
-				PL:=${PGSQL_LIBS}
-			else
-				PL:=$(shell sh -c '(${PG_CONFIG} --libdir --pkglibdir 2>/dev/null | sed "s/^/-L/g" | xargs ) || echo ')
-			endif
-
-			ifneq (${PGSQL_CFLAGS},)
-				PI:=${PGSQL_CFLAGS}
-			else
-				PI:=$(shell sh -c '(${PG_CONFIG} --includedir --pkgincludedir 2>/dev/null | sed "s/^/-I/g" | xargs ) || echo ')
-			endif
-
-			# XXX need some basic autodetech stuff here.
-
-			OSSEC_LDFLAGS+=${PL}
-			OSSEC_LDFLAGS+=-lpq
-
-		endif # pgsql
-	endif # mysql
-endif # DATABASE
-
-
 # openssl ###########
 ifeq (${USE_OPENSSL},auto)
 	ifneq (,$(wildcard /usr/include/openssl/ssl.h))
@@ -618,12 +541,6 @@ settings:
 	@echo "    USE_PCRE2_JIT:    ${USE_PCRE2_JIT}"
 	@echo "    USE_LIBTLS:       ${USE_LIBTLS}"
 	@echo "    USE_SYSTEMD:      ${USE_SYSTEMD}"
-	@echo "Mysql settings:"
-	@echo "    includes:         ${MI}"
-	@echo "    libs:             ${ML}"
-	@echo "Pgsql settings:"
-	@echo "    includes:         ${PI}"
-	@echo "    libs:             ${PL}"
 	@echo "Defines:"
 	@echo "    ${DEFINES}"
 	@echo "Compiler:"
