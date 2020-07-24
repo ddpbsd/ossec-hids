@@ -60,24 +60,28 @@ void osdns_accept(int fd, short ev, void *arg) {
     }
 
     for (;;) {
+        merror("YYY [dns] for loop");
         if ((n = imsg_get(ibuf, &imsg)) == -1) {
             merror("%s [dns]: ERROR: imsg_get() failed: %s", dname, strerror(errno));
             return;
         }
+        /*
         if (n == 0) {
             //debug2("%s [dns]: DEBUG: imsg_get() n == 0", dname);
-            return; /* No more messages */
+            return;
         }
+        */
 
 
         datalen = imsg.hdr.len - IMSG_HEADER_SIZE;
-
+merror("YYY [dns] switch");
         switch(imsg.hdr.type) {
             /*
              * OS_Sendmail() sends a DNS_REQ for the smtp_server
              * osdns() sends back a socket to the connection to the smtp_server
              */
             case DNS_REQ:
+                merror("YYY [dns] DNS_REQ");
                 sleep(1);
                 int idata = 42;
                 struct addrinfo hints, *result, *rp = NULL;
@@ -102,29 +106,37 @@ void osdns_accept(int fd, short ev, void *arg) {
                     return;
 
                 }
+                merror("YYY [dns] post getaddrinfo");
 
                 for(rp = result; rp; rp = rp->ai_next) {
                     sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
                     if (sock == -1) {
                         merror("%s [dns]: ERROR: socket() error", dname);
                     } else {
+                        merror("YYY [dns] connect");
                         if (connect(sock, rp->ai_addr, rp->ai_addrlen) == -1) {
                             merror("%s [dns]: ERROR: connect() failed.", dname);
                         } else {
+                            merror("YYY [dns] DNS_RESP 1");
                             if ((imsg_compose(ibuf, DNS_RESP, 0, 0, sock, &idata, sizeof(idata))) == -1) {
                                 merror("%s [dns]: ERROR: DNS_RESP imsg_compose() failed: %s", dname, strerror(errno));
                                 freeaddrinfo(result);
                                 return;
                             }
-                            if ((msgbuf_write(&ibuf->w) == -1) && errno != EAGAIN) {
+                            merror("YYY [dns] post compose");
+                            int ifl = 0;
+                            if ((ifl = imsg_flush(ibuf)) == -1) {
                                 merror("msgbuf_write failed (2): %s", strerror(errno));
                             } else {
+                                merror("YYY duh");
                                 freeaddrinfo(result);
                                 return;
                             }
                         }
+                        merror("YYY [dns] post connect");
                     }
                 }
+                merror("YYY [dns] post socket");
 
                 int os_dns_err = 1;
 

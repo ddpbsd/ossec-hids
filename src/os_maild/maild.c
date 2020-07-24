@@ -225,7 +225,7 @@ int main(int argc, char **argv)
     verbose(STARTUP_MSG, ARGV0, (int)getpid());
 
     /* The real daemon now */
-    OS_Run(&mail);
+    OS_Run2(&mail);
 }
 
 /* Read the queue and send the appropriate alerts

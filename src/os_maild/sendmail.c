@@ -57,6 +57,8 @@ char tls_msg[1024];
 int OS_Sendmail(MailConfig *mail, struct tm *p)
 {
 
+merror("XXX os_sendmail() start");
+
 #if __OpenBSD__
     setproctitle("[OS_Sendmail]");
 #endif
@@ -94,6 +96,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
         /* Try to use os_dns =] */
 
 #ifdef USE_LIBTLS
+        merror("XXX os_sendmail() init tls");
         if (mail->smtp_use_tls == 1) {
             merror("%s: DEBUG: Configuring tls", ARGV0);
             /* initialize tls context */
@@ -125,6 +128,7 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
 
         ssize_t n;
         int idata = 42;
+merror("XXX os_sendmail() imsg_compose");
 
         if ((imsg_compose(&mail->ibuf, DNS_REQ, 0, 0, -1, &idata, sizeof(idata))) == -1) {
             merror("%s: ERROR: imsg_compose() error: %s", ARGV0, strerror(errno));
@@ -133,24 +137,28 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
             merror("ossec-maild [OS_Sendmail]: ERROR: imsg_flush() failed.");
         }
 
+        merror("XXX os_sendmail() imsg sent");
         sleep(1);
-        ssize_t m;
-        while ((m = imsg_read(&mail->ibuf)) == 0) {
+        ssize_t m = 0;
+        int ddplc = 0;
+        if ((m = imsg_read(&mail->ibuf)) == -1 && errno != EAGAIN) {
             // Loop here until something happens
+            merror("XXX loop loop loop ERROR");
         }
-        if (m == -1) {
-            if (errno != EAGAIN) {
-                merror("%s [OS_Sendmail]: ERROR: imsg_read error: %s", ARGV0, strerror(errno));
-            }
-        }
+merror("XXX os_sendmail() after loop loop loop %zu", m);
 
         struct imsg imsg;
-        while ((m = imsg_get(&mail->ibuf, &imsg)) == 0) {
-            // Nothing really to do here, just keep doing nothing until it's done
-        }
-        if (m == -1) {
-            merror("%s [OS_Sendmail]: ERROR: imsg_get error", ARGV0);
-        }
+        ddplc = 0;
+        for (;;) {
+            m = imsg_get(&mail->ibuf, &imsg);
+            if (m == -1) {
+                merror("XXX imsg_get error");
+            }
+            if (m == 0) {
+                merror("XXX m == 0");
+            }
+
+merror("XXX after imsg_get");
 
         switch(imsg.hdr.type) {
             case DNS_RESP:
@@ -164,12 +172,15 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
                 merror("%s: ERROR Wrong imsg type. (%u)", ARGV0, imsg.hdr.type);
                 break;
         }
+        }
 
 
         if (os_sock <= 0) {
             merror("ossec-maild: ERROR: No socket.");
             return (OS_INVALID);
         }
+
+merror("XXX os_Sendmail() beginning to send the mail");
 
         /* Receive the banner */
         msg = OS_RecvTCP(socket, OS_SIZE_1024);

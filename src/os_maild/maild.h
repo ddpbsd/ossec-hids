@@ -77,5 +77,8 @@ extern unsigned int mail_timeout;
 extern unsigned int   _g_subject_level;
 extern char _g_subject[SUBJECT_SIZE + 2];
 
+void OS_Run2(MailConfig *mail);
+
+
 #endif
 
