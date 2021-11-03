@@ -304,6 +304,28 @@
     <description>ntpd peer connection refused.</description>
   </rule>
 
+  <rule id="51561" level="0" noalert="1">
+    <decoded_as>openbsd-unwind</decoded_as>
+    <description>unwind event</description>
+  </rule>
+
+  <rule id="51562" level="1">
+    <if_sid>51561</if_sid>
+    <status>failure</status>
+    <description>DNSSEC validation failure</description>
+  </rule>
+
+  <rule id="51563" level="0">
+    <if_sid>51561</if_sid>
+    <match>bad packet</match>
+    <description>Ignore</description>
+  </rule>
+
+  <rule id="51564" level="0">
+    <decoded_as>openbsd-resolvd</decoded_as>
+    <match>rebuilding: route proposals</match>
+    <description>Normal operations</description>
+  </rule>
 </group> <!-- SYSLOG,LOCAL -->
 
 
