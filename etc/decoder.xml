@@ -1187,6 +1187,23 @@ Jan  8 19:32:41 tp.lan dropbear[15165]: Pubkey auth succeeded for 'root' with ke
   <order>action</order>
 </decoder>
 
+<!-- OpenBSD unwind -->
+
+<decoder name="openbsd-unwind">
+  <program_name>^unwind</program_name>
+</decoder>
+
+<decoder name="openbsd-unwind-validation">
+  <parent>openbsd-unwind</parent>
+  <pcre2>^validation (\S+) \<(\S+)\. (\S+) \S+\>: </pcre2>
+  <order>status, url, query_type</order>
+</decoder>
+
+<!-- OpenBSD resolvd -->
+
+<decoder name="openbsd-resolvd">
+  <program_name>^resolvd</program_name>
+</decoder> 
 
 <!-- Iptables decoder.
   - Will extract the srcip, dstip, srcport, dstport, protocol
