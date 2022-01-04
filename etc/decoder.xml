@@ -3365,4 +3365,23 @@ s=2 SFwdQ=0 SDupQ=0 SErr=0 RQ=2 RIQ=0 RFwdQ=0 RDupQ=0 RTCP=0 SFwdR=0 SFail=0 SFE
   <order>protocol, extra_data, dstport, srcport, srcip, action, dstip</order>
 </decoder>
 
+
+<!-- OpenBSD unwind and resolvd decoders -->
+
+<decoder name="openbsd-unwind">
+  <program_name>^unwind</program_name>
+</decoder>
+
+<decoder name="openbsd-unwind-validation">
+  <parent>openbsd-unwind</parent>
+  <pcre2>^validation (\S+) \<(\S+)\. (\S+) \S+\>: </pcre2>
+  <order>status, url, query_type</order>
+</decoder>
+
+<decoder name="openbsd-resolvd">
+  <program_name>^resolvd</program_name>
+</decoder>
+
+
 <!-- EOF -->
+
